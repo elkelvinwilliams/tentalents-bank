@@ -60,6 +60,14 @@ tentalents-bank/
 - Sticky header transition + scroll progress bar
 - **Respects `prefers-reduced-motion`** — all motion disables for users who opt out
 
+## Testing
+
+```
+npm install
+npm test         # unit tests (Vitest + jsdom) for assets/js/main.js
+npm run test:e2e # e2e tests (Playwright) for the contact form
+```
+
 ## Notes for going live
 
 - Replace Unsplash demo images with licensed brand photography (use `srcset`/WebP).

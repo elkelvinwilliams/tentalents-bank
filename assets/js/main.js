@@ -82,12 +82,16 @@
   }
   var counters = document.querySelectorAll('[data-count]');
   if (counters.length) {
-    var co = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) { animateCount(entry.target); co.unobserve(entry.target); }
-      });
-    }, { threshold: 0.5 });
-    counters.forEach(function (el) { co.observe(el); });
+    if (!('IntersectionObserver' in window)) {
+      counters.forEach(function (el) { animateCount(el); });
+    } else {
+      var co = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) { animateCount(entry.target); co.unobserve(entry.target); }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(function (el) { co.observe(el); });
+    }
   }
 
   /* ---- Subtle hero parallax (pointer) ---- */
@@ -107,6 +111,10 @@
   document.querySelectorAll('form[data-demo]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
       var btn = form.querySelector('[type="submit"]');
       var done = form.querySelector('.form-success');
       if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
