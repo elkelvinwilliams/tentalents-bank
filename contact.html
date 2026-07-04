@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — The Ten Talents Bank</title>
+  <meta name="description" content="Arrange a confidential consultation with a senior advisor at The Ten Talents Bank. Offices in London, Geneva, Singapore and New York." />
+  <meta name="theme-color" content="#011936" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="icon" type="image/png" href="assets/img/logo-hand-gold.png" />
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html" class="brand" aria-label="The Ten Talents Bank — home"><img class="mark" src="assets/img/logo-hand-gold.png" alt="" aria-hidden="true" width="36" height="36" /><span class="brand-name">Ten Talents<small>PRIVATE&nbsp;BANK</small></span></a>
+      <nav class="nav-links" aria-label="Primary"><a href="index.html">Home</a><a href="solutions.html">Solutions</a><a href="about.html">About</a><a href="insights.html">Insights</a><a href="contact.html" aria-current="page">Contact</a></nav>
+      <div class="nav-cta">
+        <a href="portal.html" class="btn btn-outline">Client login</a>
+        <a href="#enquiry" class="btn btn-gold">Become a client <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span></button>
+      </div>
+    </div>
+  </header>
+  <div class="mobile-menu" id="mobileMenu"><a href="index.html">Home</a><a href="solutions.html">Solutions</a><a href="about.html">About</a><a href="insights.html">Insights</a><a href="contact.html" aria-current="page">Contact</a><a href="portal.html">Client login</a><a href="#enquiry" class="btn btn-gold">Become a client</a></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <p class="crumbs reveal"><a href="index.html">Home</a> · Contact</p>
+        <span class="eyebrow reveal reveal-d1" style="margin-top:1rem">Get in touch</span>
+        <h1 class="reveal reveal-d2">Let's have a chat.</h1>
+        <p class="lead reveal reveal-d3">Tell us a little about you and one of our advisors will be in touch within one working day. No pressure, no jargon — just a friendly first conversation, in complete confidence.</p>
+      </div>
+    </section>
+
+    <section style="padding-top:0" id="enquiry">
+      <div class="container">
+        <div class="contact-grid">
+          <!-- Form -->
+          <div class="card reveal">
+            <h3 style="margin-bottom:0.4rem">Private client enquiry</h3>
+            <p style="color:var(--text-muted);font-size:0.92rem;margin-bottom:1.6rem">Fields marked with an asterisk (*) are required.</p>
+            <form class="form" data-demo novalidate>
+              <div class="form-row">
+                <div class="field"><label for="fname">First name *</label><input id="fname" name="fname" type="text" autocomplete="given-name" placeholder="Jane" required /></div>
+                <div class="field"><label for="lname">Last name *</label><input id="lname" name="lname" type="text" autocomplete="family-name" placeholder="Doe" required /></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label for="email">Email *</label><input id="email" name="email" type="email" autocomplete="email" placeholder="jane@example.com" required /></div>
+                <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+44 …" /></div>
+              </div>
+              <div class="field">
+                <label for="interest">I'm interested in *</label>
+                <select id="interest" name="interest" required>
+                  <option value="" selected disabled>Please select…</option>
+                  <option>Private Wealth Management</option>
+                  <option>Investment Advisory</option>
+                  <option>Family Office Services</option>
+                  <option>Private &amp; Lombard Lending</option>
+                  <option>Estate &amp; Succession</option>
+                  <option>Philanthropy &amp; Impact</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="message">How can we help? *</label>
+                <textarea id="message" name="message" placeholder="A few words about what you're looking for…" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-gold">Submit enquiry <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <p class="form-success" hidden style="color:var(--gold);font-weight:600">Thank you — your enquiry has been received. A senior advisor will be in touch within one business day.</p>
+              <p class="form-note">By submitting, you agree to be contacted regarding your enquiry. We will never share your details.</p>
+            </form>
+          </div>
+
+          <!-- Info -->
+          <div class="contact-info reveal reveal-d1">
+            <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Speak with us</b><span>+44 (0)20 7946 0000<br>Mon–Fri, 9am–6pm GMT</span></div></div>
+            <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6h18v12H3zM3 7l9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Email</b><span>privateclients@tentalents.example<br>careers@tentalents.example</span></div></div>
+            <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" stroke-width="1.6"/></svg><div><b>London (Head office)</b><span>1 Talent Court, Mayfair<br>London W1K, United Kingdom</span></div></div>
+            <div class="item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" stroke-width="1.6"/></svg><div><b>Global offices</b><span>Geneva · Singapore · New York</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band bg-alt">
+      <div class="container inner">
+        <h2 class="reveal">Prefer to be introduced?</h2>
+        <p class="lead reveal reveal-d1">Many of our relationships begin with a referral from an existing client or professional adviser. If that's you, mention it in your enquiry and we'll take it from there.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand"><a href="index.html" class="brand" aria-label="The Ten Talents Bank — home"><img class="mark" src="assets/img/logo-hand-gold.png" alt="" aria-hidden="true" width="36" height="36" /><span class="brand-name">Ten Talents<small>PRIVATE&nbsp;BANK</small></span></a><p>The bank for the future. We help everyday people, growing families and ambitious founders grow their money — and pass it on. Investment made easy.</p></div>
+        <div class="footer-col"><h4>Solutions</h4><a href="solutions.html">Private Wealth</a><a href="solutions.html">Investment Advisory</a><a href="solutions.html">Family Office</a><a href="solutions.html">Private Lending</a><a href="solutions.html">Estate &amp; Succession</a></div>
+        <div class="footer-col"><h4>Firm</h4><a href="about.html">About us</a><a href="about.html">Our philosophy</a><a href="insights.html">Insights</a><a href="contact.html">Contact</a><a href="contact.html">Careers</a></div>
+        <div class="footer-col"><h4>Offices</h4><a href="contact.html">London</a><a href="contact.html">Geneva</a><a href="contact.html">Singapore</a><a href="contact.html">New York</a></div>
+      </div>
+      <div class="footer-bottom"><p>© <span id="year">2026</span> The Ten Talents Bank. All rights reserved.</p><div class="socials"><a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M16 8a6 6 0 016 6v6h-4v-6a2 2 0 00-4 0v6h-4v-10h4v1.5A4 4 0 0116 8zM6 9H2v11h4zM4 6a2 2 0 100-4 2 2 0 000 4z" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 4l16 16M20 4L4 20" stroke-linecap="round"/></svg></a><a href="#" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 6h18v12H3zM3 7l9 6 9-6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div>
+      <p class="legal-line">The Ten Talents Bank is a fictional brand created for demonstration purposes. Nothing on this site constitutes financial advice, an offer or a solicitation to buy or sell any investment. The value of investments can fall as well as rise and you may get back less than you invested.</p>
+    </div>
+  </footer>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

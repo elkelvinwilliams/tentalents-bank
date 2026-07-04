@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="#EDB671" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Ten Talents Bank — stacked coins (TTB)">
+  <title>Ten Talents Bank — TTB</title>
+  <!-- top stack (3 coins) -->
+  <ellipse cx="60" cy="26" rx="13" ry="4"/>
+  <line x1="47" y1="26" x2="47" y2="50"/>
+  <line x1="73" y1="26" x2="73" y2="50"/>
+  <path d="M47 34a13 4 0 0 0 26 0"/>
+  <path d="M47 42a13 4 0 0 0 26 0"/>
+  <path d="M47 50a13 4 0 0 0 26 0"/>
+  <!-- lower-left stack (4 coins) -->
+  <ellipse cx="46" cy="52" rx="13" ry="4"/>
+  <line x1="33" y1="52" x2="33" y2="84"/>
+  <line x1="59" y1="52" x2="59" y2="84"/>
+  <path d="M33 60a13 4 0 0 0 26 0"/>
+  <path d="M33 68a13 4 0 0 0 26 0"/>
+  <path d="M33 76a13 4 0 0 0 26 0"/>
+  <path d="M33 84a13 4 0 0 0 26 0"/>
+  <!-- lower-right stack (4 coins) -->
+  <ellipse cx="74" cy="52" rx="13" ry="4"/>
+  <line x1="61" y1="52" x2="61" y2="84"/>
+  <line x1="87" y1="52" x2="87" y2="84"/>
+  <path d="M61 60a13 4 0 0 0 26 0"/>
+  <path d="M61 68a13 4 0 0 0 26 0"/>
+  <path d="M61 76a13 4 0 0 0 26 0"/>
+  <path d="M61 84a13 4 0 0 0 26 0"/>
+</svg>
