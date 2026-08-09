@@ -173,44 +173,21 @@ section { position: relative; padding-block: clamp(4.5rem, 9vw, 8rem); }
 }
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
 .brand { display: flex; align-items: center; gap: 0.75rem; }
-.brand .mark { width: 40px; height: 40px; flex: none; color: var(--gold); overflow: visible;
+.brand .mark { position: relative; display: block; width: 40px; height: 40px; flex: none;
+  perspective: 160px;
   transition: filter var(--t-med) var(--ease), transform var(--t-med) var(--ease); }
-.brand .mark path, .brand .mark ellipse, .brand .mark line { stroke: currentColor; }
+.brand .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .brand:hover .mark { filter: drop-shadow(0 0 9px rgba(237, 182, 113, 0.45)); transform: scale(1.05); }
 
-/* Coin-toss brand animation: the hand launches the coin, it flips edge-on
-   twice mid-air, and the hand gives slightly on the catch. Ambient in the
-   header (one toss per 9s cycle); static in the footer. */
-.brand .mark .coin,
-.brand .mark .hand,
-.brand .mark .glint { transform-box: fill-box; transform-origin: center; }
-.brand .mark .glint { opacity: 0; }
-.site-header .brand .mark .coin  { animation: coin-toss 9s var(--ease) 1.2s infinite; }
-.site-header .brand .mark .hand  { animation: hand-catch 9s var(--ease) 1.2s infinite; }
-.site-header .brand .mark .glint { animation: glint-flash 9s var(--ease) 1.2s infinite; }
-/* NB: CSS px on SVG groups resolve in viewBox units (120-unit box drawn at
-   40px), so amplitudes here are ~3x the intended on-screen pixels. */
-@keyframes coin-toss {
-  0%        { transform: translateY(0) scaleY(1); }
-  2.5%      { transform: translateY(6px) scaleY(0.94); }
-  5%        { transform: translateY(-28px) scaleY(0.12); }
-  8%        { transform: translateY(-40px) scaleY(1); }
-  11%       { transform: translateY(-26px) scaleY(0.12); }
-  14%       { transform: translateY(2px) scaleY(1); }
-  16%       { transform: translateY(6px) scaleY(0.95); }
-  18%, 100% { transform: translateY(0) scaleY(1); }
-}
-@keyframes hand-catch {
-  0%, 2%    { transform: translateY(0); }
-  4%        { transform: translateY(6px); }
-  8%, 13%   { transform: translateY(0); }
-  16%       { transform: translateY(7px); }
-  20%, 100% { transform: translateY(0); }
-}
-@keyframes glint-flash {
-  0%, 6%    { opacity: 0; transform: scale(0.4); }
-  8.5%      { opacity: 1; transform: scale(1); }
-  12%, 100% { opacity: 0; transform: scale(0.5); }
+/* Coin-flip brand animation: the original mark split into hand and coin
+   layers — only the coin spins end-over-end in place, like a tossed coin.
+   Ambient in the header (one flip per 9s cycle); static in the footer.
+   Origin sits on the coin's centre within the full-canvas layer. */
+.brand .mark .mark-coin { transform-origin: 50% 34%; }
+.site-header .brand .mark .mark-coin { animation: coin-flip 9s var(--ease) 1.2s infinite; }
+@keyframes coin-flip {
+  0%         { transform: rotateX(0); }
+  18%, 100%  { transform: rotateX(1080deg); }
 }
 .brand-name {
   font-family: var(--ff-serif);
