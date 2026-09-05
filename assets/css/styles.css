@@ -592,12 +592,14 @@ section { position: relative; padding-block: clamp(4.5rem, 9vw, 8rem); }
 .reveal.in-view .eyebrow::before, .eyebrow.reveal.in-view::before { width: 30px; }
 
 /* Gold sheen sweeping across the hero's italic accent */
-.display .gold {
-  background: linear-gradient(105deg, var(--gold) 0%, var(--gold) 42%, #ffedd2 50%, var(--gold) 58%, var(--gold) 100%);
-  background-size: 300% 100%; background-position: 100% 0;
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gold-sheen 8s var(--ease) 2.5s infinite;
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .display .gold {
+    background: linear-gradient(105deg, var(--gold) 0%, var(--gold) 42%, #ffedd2 50%, var(--gold) 58%, var(--gold) 100%);
+    background-size: 300% 100%; background-position: 100% 0;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gold-sheen 8s var(--ease) 2.5s infinite;
+  }
 }
 @keyframes gold-sheen {
   0%, 55%   { background-position: 100% 0; }
@@ -629,8 +631,9 @@ section { position: relative; padding-block: clamp(4.5rem, 9vw, 8rem); }
 .hero-stats .stat:hover { background: rgba(237, 182, 113, 0.05); }
 .stat .num, .statband .num, .dash-top .value { font-variant-numeric: tabular-nums; }
 
-/* Mobile menu links cascade in */
-.mobile-menu a { opacity: 0; transform: translateX(-16px); }
+/* Mobile menu links cascade in (and fade out with the panel on close) */
+.mobile-menu a { opacity: 0; transform: translateX(-16px);
+  transition: opacity var(--t-med) var(--ease), transform var(--t-med) var(--ease), color var(--t-fast), padding-left var(--t-fast) var(--ease); }
 .nav-open .mobile-menu a { opacity: 1; transform: none; transition: opacity 0.45s var(--ease), transform 0.45s var(--ease), color var(--t-fast), padding-left var(--t-fast) var(--ease); }
 .nav-open .mobile-menu a:nth-child(2) { transition-delay: 0.05s; }
 .nav-open .mobile-menu a:nth-child(3) { transition-delay: 0.1s; }
