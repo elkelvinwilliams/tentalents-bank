@@ -173,8 +173,22 @@ section { position: relative; padding-block: clamp(4.5rem, 9vw, 8rem); }
 }
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
 .brand { display: flex; align-items: center; gap: 0.75rem; }
-.brand .mark { width: 40px; height: 40px; flex: none; }
-.brand .mark path, .brand .mark ellipse, .brand .mark line { stroke: var(--gold); }
+.brand .mark { position: relative; display: block; width: 40px; height: 40px; flex: none;
+  perspective: 160px;
+  transition: filter var(--t-med) var(--ease), transform var(--t-med) var(--ease); }
+.brand .mark img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.brand:hover .mark { filter: drop-shadow(0 0 9px rgba(237, 182, 113, 0.45)); transform: scale(1.05); }
+
+/* Coin-flip brand animation: the original mark split into hand and coin
+   layers — only the coin spins end-over-end in place, like a tossed coin.
+   Ambient in the header (one flip per 9s cycle); static in the footer.
+   Origin sits on the coin's centre within the full-canvas layer. */
+.brand .mark .mark-coin { transform-origin: 50% 34%; }
+.site-header .brand .mark .mark-coin { animation: coin-flip 9s var(--ease) 1.2s infinite; }
+@keyframes coin-flip {
+  0%         { transform: rotateX(0); }
+  18%, 100%  { transform: rotateX(1080deg); }
+}
 .brand-name {
   font-family: var(--ff-serif);
   font-size: 1.12rem; font-weight: 600; letter-spacing: 0.04em;
@@ -560,10 +574,99 @@ section { position: relative; padding-block: clamp(4.5rem, 9vw, 8rem); }
   .dash-grid { grid-template-columns: 1fr; }
 }
 
+/* =====================================================================
+   Motion enhancements
+   ===================================================================== */
+
+/* Reveal: rise + gentle focus-in */
+.reveal { filter: blur(5px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), filter 0.7s var(--ease); }
+.reveal.in-view { filter: blur(0); }
+
+/* Auto-stagger for grid children that share a plain .reveal */
+.grid-2 > .reveal:nth-child(2), .grid-3 > .reveal:nth-child(2) { transition-delay: 0.12s; }
+.grid-3 > .reveal:nth-child(3) { transition-delay: 0.24s; }
+.grid-2 > .reveal:nth-child(4) { transition-delay: 0.24s; }
+
+/* Eyebrow rule draws out as it reveals */
+.reveal .eyebrow::before, .eyebrow.reveal::before { width: 0; transition: width 0.9s var(--ease) 0.25s; }
+.reveal.in-view .eyebrow::before, .eyebrow.reveal.in-view::before { width: 30px; }
+
+/* Gold sheen sweeping across the hero's italic accent */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .display .gold {
+    background: linear-gradient(105deg, var(--gold) 0%, var(--gold) 42%, #ffedd2 50%, var(--gold) 58%, var(--gold) 100%);
+    background-size: 300% 100%; background-position: 100% 0;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gold-sheen 8s var(--ease) 2.5s infinite;
+  }
+}
+@keyframes gold-sheen {
+  0%, 55%   { background-position: 100% 0; }
+  75%, 100% { background-position: 0% 0; }
+}
+
+/* Gloss sweep across gold buttons on hover */
+.btn { position: relative; overflow: hidden; }
+.btn-gold::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.55) 50%, transparent 62%);
+  transform: translateX(-130%);
+}
+.btn-gold:hover::before { animation: btn-shine 0.9s var(--ease); }
+@keyframes btn-shine { to { transform: translateX(130%); } }
+
+/* Card icons lift with the card */
+.card .icon { transition: transform var(--t-med) var(--ease), background var(--t-med) var(--ease); }
+.card:hover .icon { transform: translateY(-4px); background: rgba(237, 182, 113, 0.16); }
+
+/* Slow Ken Burns on framed media */
+.media-frame img { transition: transform 1.6s var(--ease); }
+.media-frame:hover img { transform: scale(1.045); }
+.insight .thumb::after { transition: opacity 0.8s var(--ease); }
+.insight:hover .thumb::after { opacity: 0.6; }
+
+/* Hero stats warm on hover; counters keep steady columns */
+.hero-stats .stat { transition: background var(--t-med) var(--ease); }
+.hero-stats .stat:hover { background: rgba(237, 182, 113, 0.05); }
+.stat .num, .statband .num, .dash-top .value { font-variant-numeric: tabular-nums; }
+
+/* Mobile menu links cascade in (and fade out with the panel on close) */
+.mobile-menu a { opacity: 0; transform: translateX(-16px);
+  transition: opacity var(--t-med) var(--ease), transform var(--t-med) var(--ease), color var(--t-fast), padding-left var(--t-fast) var(--ease); }
+.nav-open .mobile-menu a { opacity: 1; transform: none; transition: opacity 0.45s var(--ease), transform 0.45s var(--ease), color var(--t-fast), padding-left var(--t-fast) var(--ease); }
+.nav-open .mobile-menu a:nth-child(2) { transition-delay: 0.05s; }
+.nav-open .mobile-menu a:nth-child(3) { transition-delay: 0.1s; }
+.nav-open .mobile-menu a:nth-child(4) { transition-delay: 0.15s; }
+.nav-open .mobile-menu a:nth-child(5) { transition-delay: 0.2s; }
+.nav-open .mobile-menu a:nth-child(6) { transition-delay: 0.25s; }
+.nav-open .mobile-menu a:nth-child(7) { transition-delay: 0.3s; }
+
+/* Portal: sparkline draws in, then the area fades up; donut sweeps open */
+.spark path.line { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.reveal.in-view .spark path.line { stroke-dashoffset: 0; transition: stroke-dashoffset 1.6s var(--ease) 0.4s; }
+.spark path.area { opacity: 0; }
+.reveal.in-view .spark path.area { opacity: 1; transition: opacity 0.9s var(--ease) 1.6s; }
+.donut circle { transition: stroke-dasharray 1.1s var(--ease); }
+.reveal:not(.in-view) .donut circle { stroke-dasharray: 0 100; }
+.reveal.in-view .donut circle:nth-child(2) { transition-delay: 0.1s; }
+.reveal.in-view .donut circle:nth-child(3) { transition-delay: 0.2s; }
+.reveal.in-view .donut circle:nth-child(4) { transition-delay: 0.3s; }
+.reveal.in-view .donut circle:nth-child(5) { transition-delay: 0.4s; }
+
+/* Balanced headline wrapping */
+h1, h2, .display { text-wrap: balance; }
+
+/* Keep the scroll cue clear of the hero stats on shorter viewports */
+@media (max-height: 960px) { .scroll-cue { display: none; } }
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important; }
-  .reveal { opacity: 1 !important; transform: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
   .hero-orb { animation: none; }
+  .spark path.line { stroke-dashoffset: 0; }
+  .spark path.area { opacity: 1; }
+  .reveal:not(.in-view) .donut circle { stroke-dasharray: revert-layer; }
 }
