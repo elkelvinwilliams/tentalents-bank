@@ -1,4 +1,17 @@
-# The Ten Talents Bank — Website
+# Ten Talents — Website
+
+The real Ten Talents site: a community and financial-education business.
+MVP pages (built per the approved Rebrand Architecture, Sep 2026):
+`index` · `about` · `education` · `community` · `contact` · `legal` — all
+Class A (education/community) content; no broker mentions, no invented numbers.
+
+The original fictional "Ten Talents Bank" demonstration site is preserved,
+clearly labelled, under [`/prototype/`](prototype/) — it remains the design-system
+reference and records the brand's visual origin. Nothing was deleted.
+
+---
+
+# The Ten Talents Bank — Website (design prototype, now in /prototype/)
 
 A multi-page marketing site for a fictional private investment bank.
 Dark, gold-accented luxury aesthetic with elegant, performant animations.
