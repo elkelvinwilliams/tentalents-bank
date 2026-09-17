@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Academy — Ten Talents</title>
+<link rel="icon" type="image/png" href="../assets/img/logo-hand-gold.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#011936;
+  --surface:#07213F;
+  --raised:#2E2E3A;
+  --slate:#4C5B61;
+  --line:rgba(76,91,97,.55);
+  --gold:#EDB671;
+  --gold-bright:#F5CB95;
+  --gold-dim:rgba(237,182,113,.38);
+  --cream:#EFEBCE;
+  --text:#EFEBCE;
+  --muted:#A3AEB4;
+  --risk:#E0675A;
+  --gain:#5FB98F;
+  --serif:'Libre Caslon Display','Libre Caslon Text',Georgia,'Times New Roman',serif;
+  --sans:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --shell:460px;
+}
+:root:not([data-theme="light"]),:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  min-height:100dvh;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.shell{max-width:var(--shell);margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;background:var(--ink);position:relative}
+@media (min-width:700px){
+  body{background:#000;padding:24px 0}
+  .shell{border:1px solid var(--line);border-radius:20px;overflow:hidden;min-height:calc(100dvh - 48px)}
+}
+
+/* ---------- shared pieces ---------- */
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 18px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--ink);z-index:5}
+.mark{display:flex;align-items:center;gap:9px;margin:0 auto}
+.wordmark{font-family:var(--serif);font-weight:400;font-size:15px;letter-spacing:.2em;color:var(--cream);text-transform:uppercase;margin-left:2px}
+.logo{height:30px;width:auto;display:block}
+.counter{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+.iconbtn{width:34px;height:34px;display:grid;place-items:center;color:var(--muted);border-radius:8px}
+.iconbtn:hover{color:var(--text)}
+
+.rail{height:2px;background:var(--line);position:relative;overflow:hidden}
+.rail i{display:block;height:100%;background:var(--gold);transition:width .35s ease}
+
+.pad{padding:22px 20px 0}
+h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:.005em;margin:0;color:var(--cream)}
+h1{font-size:32px;line-height:1.18}
+h2{font-size:24px;line-height:1.26}
+h3{font-size:19px}
+p{margin:0 0 14px}
+.sub{color:var(--muted);font-size:15px}
+
+.btn{display:block;width:100%;padding:15px;border-radius:8px;background:var(--gold);color:var(--ink);font-family:var(--serif);font-weight:400;text-align:center;letter-spacing:.04em;font-size:17px}
+.btn:disabled{background:var(--raised);color:#6E6E7A;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--slate);color:var(--cream)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+.choice{display:block;width:100%;text-align:left;padding:17px 18px;margin-bottom:11px;background:var(--surface);border:1px solid transparent;border-radius:10px;line-height:1.35;font-size:16px}
+.choice:hover{border-color:var(--line)}
+.choice[aria-pressed="true"]{border-color:var(--gold);background:var(--surface);color:var(--gold-bright)}
+
+.footnote{margin-top:auto;padding:16px 20px 18px;border-top:1px solid var(--line);color:#7C8A90;font-size:11px;line-height:1.55}
+
+/* ---------- legal gate ---------- */
+.gate{position:fixed;inset:0;background:var(--ink);overflow-y:auto;z-index:50}
+.gate-inner{max-width:var(--shell);margin:0 auto;padding:0 0 28px;min-height:100%;display:flex;flex-direction:column}
+.gate-head{text-align:center;padding:40px 24px 26px}
+.gate-head .logo{height:78px;margin:0 auto 14px}
+.gate-head .wordmark{font-size:22px;display:block;letter-spacing:.24em;margin:0}
+.gate-head .sub{margin-top:4px;font-family:var(--serif);font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.verse{background:var(--slate);padding:34px 30px 32px;text-align:center}
+.verse .dots3{color:var(--cream);font-size:13px;letter-spacing:.35em;margin-bottom:16px}
+.verse p{margin:0;color:var(--gold);font-family:var(--serif);font-size:15px;line-height:1.75;letter-spacing:.1em;text-transform:uppercase}
+.verse b{font-weight:400;color:var(--gold-bright)}.verse i{font-style:italic}
+.verse small{display:block;margin-top:14px;color:var(--cream);opacity:.65;font-size:12px;letter-spacing:.1em;text-transform:none}
+.warn{margin:22px 20px 0;border:1px solid #6B2B25;background:rgba(224,103,90,.09);border-radius:12px;padding:15px 16px}
+.warn h3{color:var(--risk);font-family:var(--serif);font-size:16px;font-weight:400;letter-spacing:.06em;margin-bottom:7px}
+.warn p{color:#D8A9A3;font-size:13.5px;margin:0;line-height:1.5}
+.blocks{padding:20px 20px 4px}
+.block{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line)}
+.block:last-child{border-bottom:0}
+.block svg{flex:none;margin-top:2px}
+.block h3{font-size:17px;margin-bottom:4px}
+.block p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.5}
+.links{text-align:center;padding:8px 0 16px;font-size:13.5px}
+.links a{color:var(--gold);text-decoration:none;padding:0 10px}
+.links a:hover{text-decoration:underline}
+.consent{display:flex;gap:13px;align-items:flex-start;padding:0 20px 18px;font-size:13.5px;color:var(--muted);line-height:1.5;cursor:pointer}
+.box{flex:none;width:23px;height:23px;border:1.5px solid var(--line);border-radius:6px;display:grid;place-items:center;margin-top:1px}
+.consent input{position:absolute;opacity:0;width:0;height:0}
+.consent input:checked+.box{background:var(--gold);border-color:var(--gold)}
+.consent input:checked+.box svg{display:block}
+.box svg{display:none;color:var(--ink)}
+.consent input:focus-visible+.box{outline:2px solid var(--gold-bright);outline-offset:2px}
+.gate-cta{padding:0 20px}
+
+/* ---------- tour ---------- */
+.tour{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 26px 0;text-align:center}
+.badge{width:84px;height:84px;border-radius:50%;background:var(--raised);display:grid;place-items:center;margin:0 auto 26px;color:var(--gold)}
+.dots{display:flex;gap:7px;justify-content:center;margin:30px 0 24px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--gold);width:18px;border-radius:3px}
+
+/* ---------- app ---------- */
+.view{flex:1;overflow-y:auto;padding-bottom:12px}
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--surface);position:sticky;bottom:0}
+.tab{flex:1;padding:9px 0 calc(9px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:3px;color:#7C8A90;font-size:10.5px;letter-spacing:.01em;font-weight:500}
+.tab.on{color:var(--gold)}
+
+.hero{padding:24px 20px 20px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;color:var(--gold);letter-spacing:.02em;margin-bottom:8px}
+.ring{display:flex;align-items:center;gap:16px;margin-top:20px}
+.ring svg{flex:none}
+.ring b{display:block;font-family:var(--serif);font-size:27px;font-weight:400}
+.ring span{font-size:13px;color:var(--muted)}
+
+.card{margin:16px 20px;padding:18px 19px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.card h3{margin-bottom:5px}
+.card p{font-size:14px;color:var(--muted);margin:0}
+.card.press{width:calc(100% - 40px);text-align:left;display:block}
+.card.press:hover{border-color:var(--gold-dim)}
+
+.sechead{display:flex;align-items:baseline;justify-content:space-between;padding:22px 20px 9px;border-bottom:1px solid var(--gold-dim);margin:0 0 4px}
+.sechead h2{font-size:19px;color:var(--cream)}
+.sechead span{font-size:12.5px;color:var(--muted)}
+
+.track{display:block;width:100%;text-align:left;padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:15px;align-items:flex-start}
+.track:hover{background:var(--surface)}
+.step{flex:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.track.done .step{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.track.active .step{border-color:var(--gold);color:var(--gold-bright)}
+.track b{font-family:var(--serif);font-size:19px;font-weight:400;display:block;color:var(--cream)}
+.track p{font-size:13.5px;color:var(--muted);margin:3px 0 0}
+.track .meta{font-size:12px;color:var(--gold);margin-top:7px;display:block}
+.lockicon{flex:none;color:#4E5C74;margin-top:5px}
+
+.lesson-row{display:flex;gap:13px;align-items:center;width:100%;text-align:left;padding:15px 20px;border-bottom:1px solid var(--line)}
+.lesson-row:hover{background:var(--surface)}
+.tick{flex:none;width:21px;height:21px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink)}
+.tick.on{background:var(--gain);border-color:var(--gain)}
+.lesson-row b{font-weight:500;font-size:15px;display:block}
+.lesson-row span{font-size:12.5px;color:var(--muted)}
+.pill{margin-left:auto;flex:none;font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--gold-dim);color:var(--gold)}
+
+.reader{padding:22px 20px 34px}
+.reader p{font-family:'Libre Caslon Text',var(--serif);font-size:16.5px;line-height:1.75;color:#DCD8BE;font-weight:400}
+.reader h2{margin:26px 0 12px}
+.reader .takeaways{margin:24px 0 0;padding:16px 17px;border-left:2px solid var(--gold);background:var(--surface);border-radius:0 12px 12px 0}
+.reader .takeaways h3{font-family:var(--serif);font-size:17px;font-weight:400;color:var(--gold-bright);margin-bottom:9px}
+.reader .takeaways ul{margin:0;padding-left:17px;font-size:14px;color:#DCD8BE}
+.reader .takeaways li{margin-bottom:6px}
+.reader figure{margin:22px 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.reader figcaption{font-size:12.5px;color:var(--muted);margin-top:10px}
+.spreadbar{display:flex;font-variant-numeric:tabular-nums;font-size:13px;text-align:center;border-radius:8px;overflow:hidden}
+.spreadbar div{padding:9px 4px}
+.spreadbar .b{background:rgba(79,178,134,.16);color:var(--gain);flex:1}
+.spreadbar .s{background:rgba(198,160,91,.16);color:var(--gold-bright);flex:.7}
+.spreadbar .a{background:rgba(224,103,90,.16);color:var(--risk);flex:1}
+
+.q{padding:22px 20px 0}
+.q .num{font-size:13px;color:var(--muted);margin-bottom:10px}
+.opt{display:block;width:100%;text-align:left;padding:15px 16px;margin-bottom:10px;background:var(--surface);border:1px solid transparent;border-radius:10px;font-size:15.5px;line-height:1.35}
+.opt:hover{border-color:var(--line)}
+.opt.right{border-color:var(--gain);background:rgba(79,178,134,.1)}
+.opt.wrong{border-color:var(--risk);background:rgba(224,103,90,.1)}
+.opt:disabled{cursor:default}
+.why{padding:15px 16px;border-radius:12px;background:var(--raised);font-size:14px;color:#DCD8BE;line-height:1.6;margin-bottom:14px}
+.why b{color:var(--gold-bright);font-weight:600}
+
+.score{text-align:center;padding:40px 24px 0}
+.score .big{font-family:var(--serif);font-size:60px;line-height:1;margin-bottom:8px}
+.score .pass{color:var(--gain)}
+.score .fail{color:var(--risk)}
+
+.term{padding:14px 20px;border-bottom:1px solid var(--line)}
+.term b{font-weight:600;font-size:15px}
+.term p{font-size:14px;color:var(--muted);margin:3px 0 0}
+.search{width:100%;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:11px;color:var(--text);font-family:inherit;font-size:15px}
+.search::placeholder{color:#7C8A90}
+
+.sheet{position:fixed;inset:0;background:rgba(4,7,14,.72);display:flex;align-items:flex-end;justify-content:center;z-index:40}
+.sheet-inner{width:100%;max-width:var(--shell);background:var(--surface);border-top:1px solid var(--gold);border-radius:16px 16px 0 0;padding:26px 20px calc(24px + env(safe-area-inset-bottom));max-height:92dvh;overflow-y:auto}
+.plan{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+.plan b{font-weight:600;display:block;font-size:15px}
+.plan p{font-size:13.5px;color:var(--muted);margin:3px 0 0}
+.plan .price{font-family:var(--serif);font-size:22px;white-space:nowrap;color:var(--gold-bright)}
+.demo-note{font-size:12px;color:#7C8A90;text-align:center;margin-top:14px;line-height:1.5}
+
+.cert{margin:18px 20px;padding:30px 22px 24px;border-radius:14px;text-align:center;background:var(--cream);color:var(--ink)}
+.cert .logo{height:48px;margin:0 auto 14px}
+.cert .sub{color:var(--slate);letter-spacing:.14em;text-transform:uppercase;font-size:11.5px}
+.cert .name{font-family:var(--serif);font-size:27px;font-weight:400;margin:14px 0 6px;color:var(--ink)}
+.cert .track-name{color:var(--ink);font-weight:500;font-size:14px}
+.cert .line{height:1px;background:var(--gold);margin:18px 0}
+.cert small{color:var(--slate);font-size:11.5px}
+
+.field{width:100%;padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:11px;color:var(--text);font-family:inherit;font-size:15px;margin-top:8px}
+.kv{display:flex;justify-content:space-between;padding:13px 20px;border-bottom:1px solid var(--line);font-size:14.5px}
+.kv span{color:var(--muted)}
+.soon{margin:auto;padding:50px 30px;text-align:center}
+.soon .badge{margin-bottom:22px}
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell"></div>
+<div id="overlay"></div>
+
+<script>
+"use strict";
+
+const MARK="../assets/img/logo-hand-gold.png";
+const LOGO=`<img class="logo" src="${MARK}" alt="">`;
+
+/* ============ icons ============ */
+const I = {
+  book:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4.5h6a3 3 0 013 3v12a2.5 2.5 0 00-2.5-2.5H3zM21 4.5h-6a3 3 0 00-3 3v12a2.5 2.5 0 012.5-2.5H21z"/></svg>',
+  shield:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>',
+  alert:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.2v.2"/></svg>',
+  cap:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8.5L12 4l10 4.5-10 4.5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg>',
+  scale:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4v16M6 8h12M5 8l-3 6h6zM19 8l3 6h-6z"/></svg>',
+  chart:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 19V9M10 19V4M16 19v-7M22 19H2"/></svg>',
+  check:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  lock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>',
+  back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>',
+  close:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  home:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.5L12 4l8 6.5V20H4z"/></svg>',
+  stack:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h10"/></svg>',
+  az:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>',
+  sim:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16l5-6 4 4 5-7 4 5"/></svg>',
+  user:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20c0-4 3.4-6 7.5-6s7.5 2 7.5 6"/></svg>',
+  seed:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>'
+};
+
+/* ============ content ============ */
+const QUESTIONS = [
+  ["What best describes you right now?",["Complete beginner","I know a little","I've tried trading before"]],
+  ["How much time can you give to learning each week?",["Under 1 hour","1 to 3 hours","More than 3 hours"]],
+  ["What draws you to the markets?",["Extra income","Financial freedom","Learning a new skill","Understanding how markets work"]],
+  ["Which markets interest you most?",["Forex","Gold and commodities","Indices","Stocks","I'm not sure yet"]],
+  ["Have you traded with real money before?",["Never","A little, on a demo","Yes, and I lost money","Yes, and I'm still going"]],
+  ["What gets in your way most?",["I don't know where to start","I can't read charts","I keep breaking my own rules","I don't have much time"]],
+  ["How do you learn best?",["Reading at my own pace","Short lessons with quizzes","Worked examples","Watching, then doing"]],
+  ["How would you describe your risk tolerance?",["Cautious","Balanced","Comfortable with swings","I don't know yet"]],
+  ["What would make the next six months a success?",["Understanding the basics properly","Building a repeatable routine","Passing an evaluation","Losing less than I do now"]],
+  ["How did you hear about Ten Talents?",["A friend","Telegram","Social media","Search","Somewhere else"]]
+];
+
+const TOUR = [
+  [I.seed,"Ten Talents Academy","Four tracks, built in order: money first, then markets, then risk, then building something of your own. Worked through, not skimmed."],
+  [I.stack,"Four tracks, in order","Money Foundations first. Each track builds on the one before it, so nothing arrives before you're ready for it."],
+  [I.book,"Lessons that stay with you","Short reads with worked examples and a takeaways box at the end of every lesson. Learn on the train, not at a desk."],
+  [I.check,"Quizzes that teach","Every answer comes with an explanation of why it's right. Pass at 70%. Retake as often as you like."],
+  [I.cap,"Earn your certificates","Finish a track and take away a certificate in your name."],
+  [I.chart,"See your progress","Your place is saved. Pick up where you stopped, and watch the tracks fill in."],
+  [I.sim,"A simulator is coming","Practise on a simulated account with no real money at stake. Not in this version — we're building the teaching first."],
+  [I.shield,"One thing before you start","This is education, not advice. Nothing here tells you what to buy or sell, and nobody here manages money for you."]
+];
+
+const GLOSSARY = [
+  ["Ask","The price you pay to buy. Always the higher of the two prices quoted."],
+  ["Bid","The price you receive when you sell. Always the lower of the two."],
+  ["Spread","The gap between bid and ask. It is the cost of entering a position, and you pay it the moment you open."],
+  ["Pip","The standard smallest price move in a currency pair. On most pairs it is the fourth decimal place."],
+  ["Leverage","Borrowed exposure. It multiplies the size of your position relative to your own money, and multiplies losses just as fast as gains."],
+  ["Margin","The money set aside to hold a leveraged position open. It is not a fee; it is collateral."],
+  ["Margin call","A demand for more collateral when losses eat into your margin. Ignore it and positions get closed for you."],
+  ["Stop loss","An instruction to close a position once it has moved against you by a set amount. It defines your loss before you take the trade."],
+  ["Take profit","An instruction to close a position once it has moved in your favour by a set amount."],
+  ["R multiple","A way of measuring a result in units of risk. Risking £100 and making £300 is a 3R win."],
+  ["Drawdown","The fall from a peak in account value to the following trough, usually stated as a percentage."],
+  ["Liquidity","How easily something can be bought or sold without moving its price. Thin liquidity means wider spreads and sharper moves."],
+  ["Slippage","The difference between the price you expected and the price you got. Most common around news and at the open."],
+  ["Volatility","How much a price moves over a period. High volatility means bigger moves in both directions, not just up."],
+  ["Support","A price area where buying has previously been strong enough to stop a fall."],
+  ["Resistance","A price area where selling has previously been strong enough to stop a rise."],
+  ["Position size","How much you buy or sell. The single biggest lever you have over risk."],
+  ["Long","A position that gains value if the price rises."],
+  ["Short","A position that gains value if the price falls."]
+];
+
+const L1 = `
+<p>Every market quotes two prices at once, not one. If you have only ever seen a single number on a news ticker, this is the first thing to unlearn.</p>
+<p>Say gold is quoted at <b>2,412.30 / 2,412.60</b>. The lower number is the <b>bid</b>: what you get if you sell right now. The higher number is the <b>ask</b>: what you pay if you buy right now. The gap between them, thirty cents here, is the <b>spread</b>.</p>
+<figure>
+  <div class="spreadbar"><div class="b">bid<br>2,412.30</div><div class="s">spread<br>0.30</div><div class="a">ask<br>2,412.60</div></div>
+  <figcaption>You sell at the left edge and buy at the right edge. You never trade at the middle.</figcaption>
+</figure>
+<h2>Why this matters on your very first trade</h2>
+<p>Buy gold at 2,412.60 and the position is immediately worth 2,412.30, because that is what you would get for selling it back. You are down the spread the instant you open. The price has to move in your favour by thirty cents just to get you level.</p>
+<p>That sounds trivial on one trade. Take twenty trades a week and the spread becomes one of the largest, quietest costs in your account. It is also why a strategy that takes small profits repeatedly is far harder to run than it looks on paper: the cost stays the same while the target shrinks.</p>
+<h2>What moves the spread</h2>
+<p>Spreads are not fixed. They widen when fewer people are willing to trade, which is exactly when most beginners are most active: around major news, at the daily open and close, and on thinly traded instruments. A pair that costs you half a pip at midday in London can cost several pips in the seconds after an interest rate decision.</p>
+<p>So the practical habit is simple. Before you take a position, look at the spread as it is right now, not as it usually is. If it has widened, whatever edge you thought you had may already have been spent.</p>
+<div class="takeaways"><h3>Take away</h3><ul>
+<li>Bid is what you sell at, ask is what you buy at, and the gap is the spread.</li>
+<li>You pay the spread on entry, so every position starts slightly negative.</li>
+<li>Spreads widen when liquidity thins out, especially around news.</li>
+<li>The more often you trade, the more the spread decides your results.</li>
+</ul></div>`;
+
+const L2 = `
+<p>A trade needs two sides. When you buy, somebody sells. It is worth knowing who that somebody usually is, because it explains a great deal about why prices behave as they do.</p>
+<h2>Four groups, four motives</h2>
+<p><b>Hedgers</b> are not trying to profit from the price at all. An airline buying fuel forward and a manufacturer locking in a currency rate both want certainty rather than gain. They will happily accept a worse price for a known outcome, and they trade on a schedule rather than on a chart.</p>
+<p><b>Institutions</b> move size that cannot be executed in one go. A fund unwinding a large position will work it over hours or days, which is why strong moves often continue further than seems reasonable, and why prices sometimes grind steadily in one direction with no news attached.</p>
+<p><b>Market makers</b> quote both sides continuously and earn the spread. They are not betting on direction; they are managing inventory. They want volume, and they widen their quotes when uncertainty makes holding inventory dangerous.</p>
+<p><b>Retail traders</b> are the smallest group by volume and the least coordinated. That is the group you are in.</p>
+<h2>What follows from this</h2>
+<p>Two things. First, the market is not a single opponent with a plan. It is a crowd with conflicting motives, some of whom are not even trying to win in the way you are. The idea that price is hunting you personally is a story people tell themselves after a loss.</p>
+<p>Second, your edge cannot come from size, speed, or information: institutions beat you on all three. If you have an edge at all, it comes from discipline and patience, because you are free to wait and they often are not. That is a real advantage, and it is the only one this course can help you build.</p>
+<div class="takeaways"><h3>Take away</h3><ul>
+<li>Your counterparty is often a hedger or a market maker with no view on direction.</li>
+<li>Large orders get worked over time, which is why trends persist.</li>
+<li>You cannot compete on size, speed or information.</li>
+<li>Being free to do nothing is the retail trader's one structural advantage.</li>
+</ul></div>`;
+
+const QUIZ1 = [
+  ["Gold is quoted at 2,412.30 / 2,412.60. You want to buy. Which price do you pay?",
+   ["2,412.30","2,412.60","The midpoint, 2,412.45","Whichever is closer to the last traded price"],1,
+   "You always buy at the higher price, the ask. The bid is what you would receive if you were selling instead. Nobody trades at the midpoint."],
+  ["You open a position and the price has not moved at all. Why is the position showing a small loss?",
+   ["A commission has been charged","The broker has repriced the trade","You bought at the ask and it is valued at the bid","Overnight financing has been applied"],2,
+   "You entered at the ask and the position is marked at the bid, so it starts down by the spread. The price has to move in your favour by that much before you break even."],
+  ["When would you most expect the spread to widen?",
+   ["Mid-morning in London on a quiet day","Immediately after a central bank rate decision","When a price has been flat for an hour","At the start of a long-term trend"],1,
+   "Spreads widen when liquidity thins and uncertainty rises. A rate decision does both at once, which is why costs are at their worst in the moments that feel most exciting."],
+  ["Why does taking many small profits make the spread more important?",
+   ["Brokers charge more on small trades","The cost stays the same while the target shrinks","Small trades are filled more slowly","Spreads are wider on small positions"],1,
+   "The spread is roughly constant per trade. As your profit target gets smaller, that fixed cost eats a larger share of it, so a high-frequency approach needs a much better strike rate to survive."],
+  ["Which is the retail trader's genuine structural advantage over an institution?",
+   ["Faster execution","Better information","Lower costs per trade","No obligation to trade at all"],3,
+   "Funds often must deploy or unwind capital on a timetable. You can sit out for weeks with no consequence. Patience is the one edge that size cannot take from you."]
+];
+
+const TRACKS = [
+  {id:"t1",name:"Money Foundations",blurb:"Income, spending, saving, debt, compounding, inflation. The machinery underneath everything else.",
+   modules:[
+     {id:"m1",name:"Where money goes",lessons:[{id:"l1",title:"Income, spending and the gap between them",mins:0},{id:"l2",title:"Why saving is a rate, not an amount",mins:0}],quiz:null},
+     {id:"m2",name:"Debt",lessons:[{id:"l1",title:"Good debt, bad debt and the honest test",mins:0},{id:"l2",title:"What interest costs over time",mins:0}],quiz:null},
+     {id:"m3",name:"Compounding and inflation",lessons:[{id:"l1",title:"The arithmetic of patience",mins:0},{id:"l2",title:"Inflation, the quiet tax",mins:0}],quiz:null}
+   ]},
+  {id:"t2",name:"How Markets Work",blurb:"What is actually being bought and sold, who the players are, and why prices move.",
+   modules:[
+     {id:"m1",name:"How a price is made",
+      lessons:[{id:"l1",title:"Bid, ask and the spread",mins:6,body:L1},
+               {id:"l2",title:"Who is on the other side of your trade",mins:7,body:L2}],
+      quiz:QUIZ1},
+     {id:"m2",name:"The instruments",lessons:[{id:"l1",title:"Stocks, bonds and funds",mins:0},{id:"l2",title:"Currencies and commodities",mins:0}],quiz:null},
+     {id:"m3",name:"Sessions and liquidity",lessons:[{id:"l1",title:"The three trading sessions",mins:0}],quiz:null}
+   ]},
+  {id:"t3",name:"Understanding Risk",blurb:"Why most short-term traders lose, what leverage really does, and how to recognise when you are being sold to.",
+   modules:[
+     {id:"m1",name:"Leverage and margin",lessons:[{id:"l1",title:"What leverage really borrows",mins:0},{id:"l2",title:"Margin, and how it gets called",mins:0}],quiz:null},
+     {id:"m2",name:"Position sizing",lessons:[{id:"l1",title:"Sizing from the stop, not the balance",mins:0}],quiz:null},
+     {id:"m3",name:"Being sold to",lessons:[{id:"l1",title:"Reading a promise for what it is",mins:0}],quiz:null}
+   ]},
+  {id:"t4",name:"Building Something",blurb:"Entrepreneurship as a talent developed: skills, small bets, first customers, and the fundamentals that compound.",
+   modules:[
+     {id:"m1",name:"Small bets",lessons:[{id:"l1",title:"Risking time before money",mins:0}],quiz:null},
+     {id:"m2",name:"First customers",lessons:[{id:"l1",title:"Selling before building",mins:0}],quiz:null}
+   ]}
+];
+
+/* ============ state ============ */
+const KEY="tt:v1";
+let S = {stage:"gate",answers:{},tab:"home",member:false,signals:false,
+         done:{},scores:{},name:"",tourIdx:0,qIdx:0};
+
+function load(){
+  try{ const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(S,JSON.parse(raw)); }
+  catch(e){ /* storage unavailable — run from defaults */ }
+}
+function save(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+}
+
+const totalLessons = ()=>TRACKS.reduce((a,t)=>a+t.modules.reduce((b,m)=>b+m.lessons.length,0),0);
+const doneCount = ()=>Object.keys(S.done).length;
+const lessonKey=(t,m,l)=>t+"/"+m+"/"+l;
+const quizKey=(t,m)=>t+"/"+m;
+const modulePassed=(t,m)=>(S.scores[quizKey(t,m)]||0)>=70;
+
+function moduleLocked(track,idx){
+  if(idx===0) return false;
+  const prev=track.modules[idx-1];
+  return prev.quiz ? !modulePassed(track.id,prev.id) : false;
+}
+function lessonLocked(t,m,l){
+  if(t==="t2"&&m==="m1"&&l==="l1") return false;   // free preview
+  return !S.member;
+}
+function trackProgress(t){
+  const all=t.modules.reduce((a,m)=>a+m.lessons.length,0);
+  const got=t.modules.reduce((a,m)=>a+m.lessons.filter(l=>S.done[lessonKey(t.id,m.id,l.id)]).length,0);
+  return {got,all,pct:all?Math.round(got/all*100):0};
+}
+
+/* ============ render helpers ============ */
+const shell=document.getElementById("shell");
+const overlay=document.getElementById("overlay");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function topbar(opts={}){
+  return `<div class="topbar">
+    ${opts.back?`<button class="iconbtn" data-act="${opts.back}" aria-label="Back">${I.back}</button>`:`<span style="width:34px"></span>`}
+    <div class="mark">${LOGO}<span class="wordmark">Ten Talents</span></div>
+    ${opts.counter?`<span class="counter">${opts.counter}</span>`:(opts.close?`<button class="iconbtn" data-act="${opts.close}" aria-label="Close">${I.close}</button>`:`<span style="width:34px"></span>`)}
+  </div>${opts.rail!=null?`<div class="rail"><i style="width:${opts.rail}%"></i></div>`:""}`;
+}
+const FOOT = `<div class="footnote">Ten Talents is an education and community business. Nothing here is financial advice, an investment recommendation, or an inducement to trade. Investing puts your capital at risk; never risk money you cannot afford to lose. For advice about your own circumstances, consult a financial adviser authorised by the Financial Conduct Authority.</div>`;
+
+/* ============ screens ============ */
+function renderGate(){
+  overlay.innerHTML=`<div class="gate"><div class="gate-inner">
+    <div class="gate-head">
+      ${LOGO}
+      <span class="wordmark">Ten Talents</span>
+      <div class="sub">Academy</div>
+    </div>
+    <div class="verse"><div class="dots3">•••</div>
+      <p>He who had received the <b>five</b> talents went at once and traded with them, and he made <b>five talents <i>more</i></b>.</p>
+      <small>Matthew 25:16</small></div>
+    <div class="warn"><h3>Risk warning</h3><p>Trading leveraged products carries a high risk of losing money rapidly. Most retail accounts lose money. You could lose your entire stake.</p></div>
+    <div class="blocks">
+      <div class="block"><span style="color:var(--gold)">${I.book}</span><div><h3>Education only</h3><p>Ten Talents teaches how markets work. Nothing here is financial advice, a recommendation, or an invitation to trade.</p></div></div>
+      <div class="block"><span style="color:var(--gold)">${I.scale}</span><div><h3>Not regulated</h3><p>Ten Talents is not a bank and is not authorised or regulated by the Financial Conduct Authority. Speak to a licensed adviser before risking real money.</p></div></div>
+      <div class="block"><span style="color:var(--risk)">${I.alert}</span><div><h3>Real trading risks</h3><p>If you trade with real money elsewhere you can lose all of it. Nothing you learn here changes that.</p></div></div>
+      <div class="block"><span style="color:var(--gain)">${I.shield}</span><div><h3>Over 18 only</h3><p>This app is for people aged 18 or over.</p></div></div>
+    </div>
+    <div class="links"><a href="../legal.html#privacy">Privacy</a>|<a href="../legal.html#terms">Terms</a>|<a href="../legal.html#disclaimer">Disclaimer</a></div>
+    <label class="consent">
+      <input type="checkbox" id="consent">
+      <span class="box">${I.check}</span>
+      <span>I am 18 or over, I understand this is educational content only and not financial advice, and I accept the risks of trading.</span>
+    </label>
+    <div class="gate-cta"><button class="btn" id="enter" disabled>Continue</button></div>
+  </div></div>`;
+  const cb=document.getElementById("consent"), go=document.getElementById("enter");
+  cb.addEventListener("change",()=>{go.disabled=!cb.checked});
+  go.addEventListener("click",()=>{S.stage="onboard";S.qIdx=0;save();overlay.innerHTML="";render()});
+}
+
+function renderOnboard(){
+  const i=S.qIdx,[q,opts]=QUESTIONS[i];
+  shell.innerHTML = topbar({back:"q-back",counter:(i+1)+"/10",rail:(i+1)/10*100})
+   + `<div class="view"><div class="pad"><h1>${esc(q)}</h1><div style="height:22px"></div>`
+   + opts.map((o,n)=>`<button class="choice" data-act="answer" data-n="${n}" aria-pressed="${S.answers[i]===n}">${esc(o)}</button>`).join("")
+   + `</div></div>`;
+}
+
+function renderTour(){
+  const i=S.tourIdx,[icon,title,body]=TOUR[i],last=i===TOUR.length-1;
+  shell.innerHTML = topbar({counter:(i+1)+"/"+TOUR.length})
+   + `<div class="view" style="display:flex;flex-direction:column">
+        <div class="tour">
+          <div class="badge">${icon}</div>
+          <h1>${esc(title)}</h1>
+          <p class="sub" style="margin-top:14px">${esc(body)}</p>
+          <div class="dots">${TOUR.map((_,n)=>`<i class="${n===i?'on':''}"></i>`).join("")}</div>
+        </div>
+        <div style="padding:0 20px 22px">
+          <div class="row">
+            <button class="btn ghost" data-act="tour-back" ${i===0?'disabled':''}>Back</button>
+            <button class="btn" data-act="tour-next">${last?"Begin learning":"Next"}</button>
+          </div>
+          <button class="btn ghost" style="margin-top:10px;border:0;color:var(--muted)" data-act="tour-skip">Skip</button>
+        </div>
+      </div>`;
+}
+
+function ringSVG(pct){
+  const r=26,c=2*Math.PI*r;
+  return `<svg width="64" height="64" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="#2E2E3A" stroke-width="5"/>
+    <circle cx="32" cy="32" r="${r}" fill="none" stroke="#EDB671" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct/100)}" transform="rotate(-90 32 32)"/>
+  </svg>`;
+}
+
+function nextUp(){
+  for(const t of TRACKS) for(const m of t.modules) for(const l of m.lessons){
+    if(!S.done[lessonKey(t.id,m.id,l.id)]) return {t,m,l};
+  }
+  return null;
+}
+
+function renderHome(){
+  const pct=Math.round(doneCount()/totalLessons()*100);
+  const n=nextUp();
+  const rec=TRACKS[0];
+  return `<div class="hero">
+      <div class="eyebrow">${S.member?"Member":"Free preview"}</div>
+      <h1>${doneCount()?"Pick up where you stopped":"Start with money, not markets"}</h1>
+      <div class="ring">${ringSVG(pct)}<div><b>${doneCount()} of ${totalLessons()}</b><span>lessons complete</span></div></div>
+    </div>
+    ${n?`<button class="card press" data-act="open-lesson" data-t="${n.t.id}" data-m="${n.m.id}" data-l="${n.l.id}">
+        <h3>${esc(n.l.title)}</h3><p>${esc(n.t.name)} · ${esc(n.m.name)}</p></button>`:
+       `<div class="card"><h3>Every lesson done</h3><p>Your certificates are on the profile tab.</p></div>`}
+    <div class="sechead"><h2>Recommended for you</h2><span>from your answers</span></div>
+    <button class="card press" data-act="tab" data-tab="academy" style="margin-top:14px">
+      <h3>${esc(rec.name)}</h3><p>${esc(rec.blurb)}</p></button>
+    ${!S.member?`<div class="card" style="border-color:var(--gold-dim)">
+      <h3>Unlock the full Academy</h3>
+      <p>All four tracks, every quiz and your certificates. £15.99 a month.</p>
+      <button class="btn" style="margin-top:14px" data-act="paywall">See membership</button></div>`:""}`;
+}
+
+function renderAcademy(){
+  let out=`<div class="sechead"><h2>Four tracks</h2><span>in order</span></div>`;
+  TRACKS.forEach((t,i)=>{
+    const p=trackProgress(t);
+    const cls=p.pct===100?"done":(p.got>0?"active":"");
+    out+=`<button class="track ${cls}" data-act="open-track" data-t="${t.id}">
+      <span class="step">${p.pct===100?I.check:i+1}</span>
+      <span style="flex:1"><b>${esc(t.name)}</b><p>${esc(t.blurb)}</p>
+        <span class="meta">${p.got} of ${p.all} lessons</span></span>
+      ${(!S.member&&i!==1)?`<span class="lockicon">${I.lock}</span>`:""}
+    </button>`;
+  });
+  return out;
+}
+
+function renderTrack(id){
+  const t=TRACKS.find(x=>x.id===id);
+  let out=topbar({back:"to-academy"})+`<div class="view"><div class="pad"><h1>${esc(t.name)}</h1><p class="sub" style="margin-top:8px">${esc(t.blurb)}</p></div>`;
+  t.modules.forEach((m,mi)=>{
+    const locked=moduleLocked(t,mi);
+    out+=`<div class="sechead"><h2>${esc(m.name)}</h2>${locked?`<span>pass the last quiz first</span>`:""}</div>`;
+    m.lessons.forEach(l=>{
+      const done=!!S.done[lessonKey(t.id,m.id,l.id)];
+      const pay=lessonLocked(t.id,m.id,l.id);
+      const free=(t.id==="t2"&&m.id==="m1"&&l.id==="l1");
+      const ready=l.mins>0;
+      out+=`<button class="lesson-row" data-act="${locked?'noop':'open-lesson'}" data-t="${t.id}" data-m="${m.id}" data-l="${l.id}" ${locked?'style="opacity:.45"':''}>
+        <span class="tick ${done?'on':''}">${done?I.check:""}</span>
+        <span style="flex:1"><b>${esc(l.title)}</b><span>${ready?l.mins+" min read":"Content coming soon"}</span></span>
+        ${free&&!S.member?`<span class="pill">Free</span>`:(pay?`<span class="lockicon">${I.lock}</span>`:"")}
+      </button>`;
+    });
+    if(m.quiz){
+      const sc=S.scores[quizKey(t.id,m.id)];
+      out+=`<button class="lesson-row" data-act="${locked?'noop':'open-quiz'}" data-t="${t.id}" data-m="${m.id}" ${locked?'style="opacity:.45"':''}>
+        <span class="tick ${sc>=70?'on':''}">${sc>=70?I.check:""}</span>
+        <span style="flex:1"><b>Module quiz</b><span>${sc!=null?"Best score "+sc+"%":"5 questions · pass at 70%"}</span></span>
+        ${!S.member?`<span class="lockicon">${I.lock}</span>`:""}
+      </button>`;
+    }
+  });
+  return out+`</div>`;
+}
+
+function renderGlossary(q){
+  const list=GLOSSARY.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
+  return `<div class="sechead"><h2>Glossary</h2><span id="gcount">${list.length} terms</span></div>
+    <div style="padding:14px 20px"><input class="search" id="gq" placeholder="Search terms" value="${esc(q||"")}"></div>
+    <div id="terms">${list.length?list.map(([t,d])=>`<div class="term"><b>${esc(t)}</b><p>${esc(d)}</p></div>`).join(""):
+      `<div class="term"><p>No term matches that. Try a shorter word.</p></div>`}</div>`;
+}
+
+function renderProfile(){
+  const certs=TRACKS.filter(t=>trackProgress(t).pct===100);
+  return `<div class="sechead"><h2>Your account</h2></div>
+    <div class="kv"><span>Membership</span><b>${S.member?"Active · £15.99/mo":"Free preview"}</b></div>
+    <div class="kv"><span>Lessons complete</span><b>${doneCount()} of ${totalLessons()}</b></div>
+    <div class="kv"><span>Quizzes passed</span><b>${Object.values(S.scores).filter(s=>s>=70).length}</b></div>
+    <div style="padding:18px 20px 0">
+      <label class="sub" for="nm">Name on your certificates</label>
+      <input class="field" id="nm" value="${esc(S.name)}" placeholder="Your full name">
+    </div>
+    <div style="padding:18px 20px 0">
+      ${S.member?`<button class="btn ghost" data-act="cancel">Cancel membership</button>`:
+                 `<button class="btn" data-act="paywall">See membership</button>`}
+    </div>
+    <div class="sechead"><h2>Certificates</h2><span>${certs.length}</span></div>
+    ${certs.length?certs.map(t=>`<div class="cert">${LOGO}
+        <div class="sub">Certificate of completion</div>
+        <div class="name">${esc(S.name||"Your name")}</div>
+        <div class="track-name">${esc(t.name)}</div><div class="line"></div>
+        <small>Ten Talents Academy · educational programme · not a regulated qualification</small></div>`).join(""):
+      `<div class="card"><h3>Nothing yet</h3><p>Finish every lesson in a track and its certificate appears here.</p></div>`}
+    <div style="padding:8px 20px 0"><button class="btn ghost" data-act="reset">Reset all progress</button><a class="btn ghost" style="margin-top:10px;border:0;color:var(--muted);text-decoration:none" href="../index.html">Back to tentalents site</a></div>`;
+}
+
+function renderApp(){
+  const tabs=[["home","Home",I.home],["academy","Academy",I.stack],["glossary","Glossary",I.az],["sim","Simulator",I.sim],["profile","Profile",I.user]];
+  let body;
+  if(S.tab==="home") body=renderHome();
+  else if(S.tab==="academy") body=renderAcademy();
+  else if(S.tab==="glossary") body=renderGlossary(S.gq||"");
+  else if(S.tab==="profile") body=renderProfile();
+  else body=`<div class="soon"><div class="badge">${I.sim}</div><h2>Simulator coming soon</h2>
+      <p class="sub" style="margin-top:12px">A simulated account with no real money at stake, so you can practise what the Academy teaches. We are building the teaching first.</p></div>`;
+  shell.innerHTML = topbar({}) + `<div class="view">${body}${FOOT}</div>
+    <nav class="tabs">${tabs.map(([k,label,ic])=>
+      `<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-tab="${k}">${ic}<span>${label}</span></button>`).join("")}</nav>`;
+  if(S.tab==="glossary"){
+    const inp=document.getElementById("gq");
+    inp.addEventListener("input",e=>{
+      S.gq=e.target.value.toLowerCase();
+      const q=S.gq;
+      const list=GLOSSARY.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
+      document.getElementById("terms").innerHTML = list.length
+        ? list.map(([t,d])=>`<div class="term"><b>${esc(t)}</b><p>${esc(d)}</p></div>`).join("")
+        : `<div class="term"><p>No term matches that. Try a shorter word.</p></div>`;
+      document.getElementById("gcount").textContent = list.length+" terms";
+    });
+  }
+  if(S.tab==="profile"){
+    const nm=document.getElementById("nm");
+    nm&&nm.addEventListener("input",e=>{S.name=e.target.value;save()});
+  }
+}
+
+/* ---------- overlays ---------- */
+let view=null; // {kind:'lesson'|'quiz'|'track', ...}
+
+function openTrack(t){ view={kind:"track",t}; shell.innerHTML=renderTrack(t); }
+
+function openLesson(t,m,l){
+  if(lessonLocked(t,m,l)) return openPaywall();
+  const T=TRACKS.find(x=>x.id===t),M=T.modules.find(x=>x.id===m),L=M.lessons.find(x=>x.id===l);
+  view={kind:"lesson",t,m,l};
+  const done=!!S.done[lessonKey(t,m,l)];
+  shell.innerHTML = topbar({back:"to-track"})+`<div class="view">
+    <div class="pad"><div class="eyebrow">${esc(T.name)} · ${esc(M.name)}</div><h1>${esc(L.title)}</h1></div>
+    <div class="reader">${L.body||`<p class="sub">This lesson is not written yet. Content is added through the admin area — see the note below the app.</p>`}</div>
+    ${L.body?`<div style="padding:0 20px 24px"><button class="btn" data-act="complete">${done?"Completed":"Mark complete"}</button></div>`:""}
+    ${FOOT}</div>`;
+}
+
+let quiz=null;
+function openQuiz(t,m){
+  if(!S.member) return openPaywall();
+  const M=TRACKS.find(x=>x.id===t).modules.find(x=>x.id===m);
+  if(!M.quiz) return;
+  quiz={t,m,i:0,correct:0,answered:false,items:M.quiz};
+  drawQuiz();
+}
+function drawQuiz(){
+  const {i,items}=quiz,[q,opts,ans,why]=items[i];
+  shell.innerHTML = topbar({close:"to-track",counter:(i+1)+"/"+items.length,rail:(i)/items.length*100})
+   +`<div class="view"><div class="q"><div class="num">Question ${i+1}</div><h2>${esc(q)}</h2><div style="height:18px"></div>
+      ${opts.map((o,n)=>`<button class="opt" data-act="answer-q" data-n="${n}">${esc(o)}</button>`).join("")}
+      <div id="fb"></div></div>${FOOT}</div>`;
+}
+function answerQuiz(n){
+  if(quiz.answered) return;
+  quiz.answered=true;
+  const [q,opts,ans,why]=quiz.items[quiz.i];
+  if(n===ans) quiz.correct++;
+  document.querySelectorAll(".opt").forEach((b,idx)=>{
+    b.disabled=true;
+    if(idx===ans) b.classList.add("right");
+    else if(idx===n) b.classList.add("wrong");
+  });
+  const last=quiz.i===quiz.items.length-1;
+  document.getElementById("fb").innerHTML=
+    `<div class="why"><b>${n===ans?"Correct.":"Not quite."}</b> ${esc(why)}</div>
+     <button class="btn" data-act="q-next">${last?"See your score":"Next question"}</button>`;
+  document.querySelector(".rail i").style.width=((quiz.i+1)/quiz.items.length*100)+"%";
+}
+function quizResult(){
+  const pct=Math.round(quiz.correct/quiz.items.length*100);
+  const key=quizKey(quiz.t,quiz.m);
+  S.scores[key]=Math.max(S.scores[key]||0,pct); save();
+  const pass=pct>=70;
+  shell.innerHTML = topbar({close:"to-track"})+`<div class="view">
+    <div class="score"><div class="big ${pass?'pass':'fail'}">${pct}%</div>
+      <h2>${pass?"Module passed":"Not passed yet"}</h2>
+      <p class="sub" style="margin-top:10px">${pass?"The next module is now open. Your best score is kept.":"You need 70% to move on. Retake it as often as you like — the explanations are the lesson."}</p></div>
+    <div style="padding:26px 20px 0">
+      <button class="btn" data-act="retake">Retake quiz</button>
+      <button class="btn ghost" style="margin-top:10px" data-act="to-track">Back to track</button>
+    </div>${FOOT}</div>`;
+}
+
+function openPaywall(){
+  overlay.innerHTML=`<div class="sheet" data-act="close-sheet"><div class="sheet-inner" id="si">
+    <h2>Ten Talents Academy</h2>
+    <p class="sub" style="margin-top:8px">The first lesson is free. Membership opens the rest.</p>
+    <div class="plan"><div><b>Membership</b><p>All four tracks, every quiz, your certificates.</p></div><span class="price">£15.99<small style="color:var(--muted);font-family:var(--sans);font-size:12px">/mo</small></span></div>
+    <div style="height:18px"></div>
+    <button class="btn" data-act="buy">Start membership</button>
+    <button class="btn ghost" style="margin-top:10px;border:0;color:var(--muted)" data-act="close-sheet">Not now</button>
+    <p class="demo-note">Prototype: no payment is taken and no card is collected. These buttons unlock the content locally so you can review the full flow.</p>
+  </div></div>`;
+}
+
+/* ============ router ============ */
+function render(){
+  if(S.stage==="gate"){ shell.innerHTML=""; return renderGate(); }
+  if(S.stage==="onboard") return renderOnboard();
+  if(S.stage==="tour") return renderTour();
+  view=null; renderApp();
+}
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]"); if(!el) return;
+  const a=el.dataset.act;
+  if(a==="noop"){ e.preventDefault(); return; }
+
+  if(a==="answer"){
+    S.answers[S.qIdx]=+el.dataset.n;
+    if(S.qIdx<QUESTIONS.length-1){ S.qIdx++; save(); renderOnboard(); }
+    else { S.stage="tour"; S.tourIdx=0; save(); renderTour(); }
+    return;
+  }
+  if(a==="q-back"){ if(S.qIdx>0){S.qIdx--;renderOnboard();} return; }
+  if(a==="tour-next"){ if(S.tourIdx<TOUR.length-1){S.tourIdx++;renderTour();} else {S.stage="app";save();render();} return; }
+  if(a==="tour-back"){ if(S.tourIdx>0){S.tourIdx--;renderTour();} return; }
+  if(a==="tour-skip"){ S.stage="app"; save(); render(); return; }
+
+  if(a==="tab"){ S.tab=el.dataset.tab; save(); renderApp(); return; }
+  if(a==="open-track"){ openTrack(el.dataset.t); return; }
+  if(a==="to-academy"){ S.tab="academy"; renderApp(); return; }
+  if(a==="to-track"){ openTrack((view&&view.t)||(quiz&&quiz.t)||"t1"); return; }
+  if(a==="open-lesson"){ openLesson(el.dataset.t,el.dataset.m,el.dataset.l); return; }
+  if(a==="open-quiz"){ openQuiz(el.dataset.t,el.dataset.m); return; }
+  if(a==="complete"){
+    S.done[lessonKey(view.t,view.m,view.l)]=1; save(); openTrack(view.t); return;
+  }
+  if(a==="answer-q"){ answerQuiz(+el.dataset.n); return; }
+  if(a==="q-next"){
+    if(quiz.i===quiz.items.length-1) quizResult();
+    else { quiz.i++; quiz.answered=false; drawQuiz(); }
+    return;
+  }
+  if(a==="retake"){ openQuiz(quiz.t,quiz.m); return; }
+
+  if(a==="paywall"){ openPaywall(); return; }
+  if(a==="close-sheet"){ if(el.classList.contains("sheet") && e.target!==el) return; overlay.innerHTML=""; return; }
+  if(a==="buy"||a==="buy-both"){
+    S.member=true; if(a==="buy-both") S.signals=true; save();
+    overlay.innerHTML=""; renderApp(); return;
+  }
+  if(a==="cancel"){ S.member=false; S.signals=false; save(); renderApp(); return; }
+  if(a==="reset"){
+    S={stage:"app",answers:{},tab:"profile",member:false,signals:false,done:{},scores:{},name:"",tourIdx:0,qIdx:0};
+    save(); renderApp(); return;
+  }
+});
+
+load(); render();
+</script>
+</body>
+</html>

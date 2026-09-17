@@ -9,6 +9,19 @@ The original fictional "Ten Talents Bank" demonstration site is preserved,
 clearly labelled, under [`/prototype/`](prototype/) — it remains the design-system
 reference and records the brand's visual origin. Nothing was deleted.
 
+## Academy (`/academy/`)
+
+The structured-learning app: legal gate, onboarding questionnaire, the four
+education tracks as lessons with quizzes (70% pass, module locking, best score
+kept), glossary, certificates, and a membership paywall. Money Foundations is
+Track 1, matching `education.html`. Single file, no build step; progress lives
+in the browser. It is a prototype: no accounts, no payments (the membership
+buttons unlock content locally), two written lessons and one quiz so far.
+
+The academy uses the site palette and the hand-and-coin mark, but sets type in
+Libre Caslon Display / Source Sans 3 rather than the site's Playfair / Inter.
+Whether the site moves to the Caslon set is a separate decision.
+
 ---
 
 # The Ten Talents Bank — Website (design prototype, now in /prototype/)
