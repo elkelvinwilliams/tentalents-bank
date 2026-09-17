@@ -77,7 +77,7 @@ export async function adminSignIn(password: string) {
   const jar = await cookies();
   jar.set(ADMIN_COOKIE, hashToken(expected), {
     httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",
-    path: "/admin", maxAge: 12 * 3600,
+    path: "/", maxAge: 12 * 3600, // "/" so /api/admin/* receives it too
   });
   return true;
 }

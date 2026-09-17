@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ten Talents Academy — production app
 
-## Getting Started
+The production version of `/academy/index.html` (the prototype is the UI/copy
+contract and stays untouched). Next.js + Postgres + Stripe. The static site at
+the repo root is unaffected.
 
-First, run the development server:
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd app
+npm install
+npm run db:setup      # migrate + seed (4 tracks, lessons, quiz, glossary — from the prototype)
+ADMIN_PASSWORD=devadmin npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+No env vars needed locally: the database is embedded (PGlite in `.pglite/`),
+emails print to the console, Stripe endpoints return a friendly "not
+configured" error until keys exist.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**PGlite is single-process.** Stop the dev server before running
+`npm run db:setup` or any script in `scripts/` — concurrent access corrupts
+the local database (delete `.pglite/` and re-run `db:setup` if that happens).
+Production uses `DATABASE_URL` (Neon) where this doesn't apply.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy (Vercel)
 
-## Learn More
+1. Vercel project → root directory `app/`. Add env vars from `.env.example`
+   (DATABASE_URL from Neon, ADMIN_PASSWORD, APP_URL, Stripe keys, Resend,
+   Blob token).
+2. Run migrations/seed once against Neon:
+   `DATABASE_URL=... npm run db:setup`
+3. Stripe (test mode first):
+   - Product **Academy Membership**, recurring price **£15.99/month GBP** → `STRIPE_PRICE_MEMBERSHIP`
+   - Product **Signals Access**, recurring price **£4.99/month GBP** → `STRIPE_PRICE_SIGNALS`
+   - Webhook endpoint `https://<app>/api/stripe/webhook` with events:
+     `checkout.session.completed`, `customer.subscription.created`,
+     `customer.subscription.updated`, `customer.subscription.deleted`,
+     `invoice.paid`, `invoice.payment_failed` → `STRIPE_WEBHOOK_SECRET`
+   - Billing Portal: enable card update + cancel at period end.
 
-To learn more about Next.js, take a look at the following resources:
+## Guarantees carried over from the spec
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Webhooks are the sole writer of entitlement state; the client only reads.
+- Paywall, quiz answers and the signals page are enforced server-side.
+- Failed payment → `past_due` grace banner → lock on Stripe giving up.
+  Progress rows are never deleted by billing state.
+- The Signals product is feature-flagged (`SIGNALS_ENABLED=false` by default)
+  and stays dark until the legal sign-off is filed in the ops repo.
+- `modules.kind` reserves the simulator: adding it later is additive.
+- Admin at `/admin` (password: `ADMIN_PASSWORD`): tracks/modules/lessons
+  create/edit/reorder/publish, TipTap editor with image upload + video embed,
+  quiz builder, glossary, member list. Lesson HTML is sanitised server-side.
