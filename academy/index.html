@@ -583,6 +583,7 @@ function renderProfile(){
   const certs=TRACKS.filter(t=>trackProgress(t).pct===100);
   return `<div class="sechead"><h2>Your account</h2></div>
     <div class="kv"><span>Membership</span><b>${S.member?"Active · £15.99/mo":"Free preview"}</b></div>
+    <div class="kv"><span>Signals access</span><b>${S.signals?"Active · £4.99/mo":"Not added"}</b></div>
     <div class="kv"><span>Lessons complete</span><b>${doneCount()} of ${totalLessons()}</b></div>
     <div class="kv"><span>Quizzes passed</span><b>${Object.values(S.scores).filter(s=>s>=70).length}</b></div>
     <div style="padding:18px 20px 0">
@@ -593,6 +594,8 @@ function renderProfile(){
       ${S.member?`<button class="btn ghost" data-act="cancel">Cancel membership</button>`:
                  `<button class="btn" data-act="paywall">See membership</button>`}
     </div>
+    ${S.signals?`<div class="card" style="border-color:var(--gold-dim)"><h3>Signals channel</h3>
+       <p>Your invite link lives here. Educational commentary only, not advice. Past performance does not indicate future results.</p></div>`:""}
     <div class="sechead"><h2>Certificates</h2><span>${certs.length}</span></div>
     ${certs.length?certs.map(t=>`<div class="cert">${LOGO}
         <div class="sub">Certificate of completion</div>
@@ -701,8 +704,10 @@ function openPaywall(){
     <h2>Ten Talents Academy</h2>
     <p class="sub" style="margin-top:8px">The first lesson is free. Membership opens the rest.</p>
     <div class="plan"><div><b>Membership</b><p>All four tracks, every quiz, your certificates.</p></div><span class="price">£15.99<small style="color:var(--muted);font-family:var(--sans);font-size:12px">/mo</small></span></div>
+    <div class="plan"><div><b>Signals access</b><p>Members only. Educational commentary, not advice.</p></div><span class="price">£4.99<small style="color:var(--muted);font-family:var(--sans);font-size:12px">/mo</small></span></div>
     <div style="height:18px"></div>
     <button class="btn" data-act="buy">Start membership</button>
+    <button class="btn ghost" style="margin-top:10px" data-act="buy-both">Membership and signals</button>
     <button class="btn ghost" style="margin-top:10px;border:0;color:var(--muted)" data-act="close-sheet">Not now</button>
     <p class="demo-note">Prototype: no payment is taken and no card is collected. These buttons unlock the content locally so you can review the full flow.</p>
   </div></div>`;
