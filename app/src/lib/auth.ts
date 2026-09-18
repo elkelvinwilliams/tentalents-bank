@@ -1,7 +1,7 @@
 import { db, tables } from "@/db";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
-import argon2 from "argon2";
+import { hash as argonHash, verify as argonVerify } from "@node-rs/argon2";
 import { createHash, randomBytes } from "node:crypto";
 
 const SESSION_COOKIE = "tt_session";
@@ -10,8 +10,8 @@ const SESSION_DAYS = 30;
 export const nid = (n = 21) => randomBytes(n).toString("base64url").slice(0, n);
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 
-export const hashPassword = (pw: string) => argon2.hash(pw);
-export const verifyPassword = (hash: string, pw: string) => argon2.verify(hash, pw).catch(() => false);
+export const hashPassword = (pw: string) => argonHash(pw);
+export const verifyPassword = (hash: string, pw: string) => argonVerify(hash, pw).catch(() => false);
 
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
