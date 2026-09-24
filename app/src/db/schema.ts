@@ -122,6 +122,59 @@ export const entitlements = pgTable("entitlements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* ---------- gamification (learning only — never trading) ---------- */
+
+export const userStats = pgTable("user_stats", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  xp: integer("xp").notNull().default(0),
+  streak: integer("streak").notNull().default(0),
+  lastActive: text("last_active"), // YYYY-MM-DD (UTC) of last XP event
+  todayXp: integer("today_xp").notNull().default(0),
+  todayDate: text("today_date"), // YYYY-MM-DD the todayXp counter belongs to
+  badges: jsonb("badges").$type<string[]>().notNull().default([]),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const xpEvents = pgTable("xp_events", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(), // lesson_done | quiz_pass | assessment | goal_set | goal_add | goal_ms | goal_done | drill | knowledge
+  ref: text("ref").notNull().default(""), // stable ref for once-only awards ('' = repeatable)
+  amount: integer("amount").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("xp_user_idx").on(t.userId), uniqueIndex("xp_once_uq").on(t.userId, t.kind, t.ref)]);
+
+/* ---------- steward: user-entered goals (planning tool, no money held) ---------- */
+
+export const goals = pgTable("goals", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  icon: text("icon").notNull().default("target"),
+  targetPence: integer("target_pence").notNull(),
+  savedPence: integer("saved_pence").notNull().default(0),
+  targetMonth: text("target_month"), // YYYY-MM or null
+  milestones: jsonb("milestones").$type<number[]>().notNull().default([]), // [25,50,75,100] already awarded
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("goals_user_idx").on(t.userId)]);
+
+/* ---------- trading journal (behaviour, not performance) ---------- */
+
+export const journalEntries = pgTable("journal_entries", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: text("date").notNull(), // YYYY-MM-DD
+  symbol: text("symbol").notNull(),
+  direction: text("direction").notNull().default("Long"),
+  pnlPence: integer("pnl_pence").notNull().default(0),
+  planned: boolean("planned").notNull().default(true),
+  emotionBefore: text("emotion_before").notNull().default(""),
+  emotionAfter: text("emotion_after").notNull().default(""),
+  reason: text("reason").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("journal_user_idx").on(t.userId)]);
+
 export const webhookEvents = pgTable("webhook_events", {
   id: text("id").primaryKey(), // Stripe event id — idempotency
   type: text("type").notNull(),

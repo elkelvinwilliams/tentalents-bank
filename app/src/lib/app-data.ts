@@ -1,6 +1,7 @@
 import { db, tables } from "@/db";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { getEntitlement, SIGNALS_ENABLED } from "./entitlements";
+import { getStats } from "./gamify";
 import type { SessionUser } from "./auth";
 
 export type LessonMeta = { id: string; title: string; minutes: number; isFreePreview: boolean };
@@ -32,12 +33,18 @@ export async function loadContent(): Promise<{ tracks: TrackMeta[]; glossary: [s
   return { tracks, glossary: gs.map((g) => [g.term, g.definition]) };
 }
 
+export type GoalRow = { id: string; name: string; icon: string; targetPence: number; savedPence: number; targetMonth: string | null; milestones: number[] };
+export type JournalRow = { id: string; date: string; symbol: string; direction: string; pnlPence: number; planned: boolean; emotionBefore: string; emotionAfter: string; reason: string };
+
 export async function loadUserState(user: SessionUser) {
-  const [progress, attempts, certs, ent] = await Promise.all([
+  const [progress, attempts, certs, ent, stats, goalRows, journalRows] = await Promise.all([
     db.select().from(tables.lessonProgress).where(eq(tables.lessonProgress.userId, user.id)),
     db.select().from(tables.quizAttempts).where(eq(tables.quizAttempts.userId, user.id)),
     db.select().from(tables.certificates).where(eq(tables.certificates.userId, user.id)),
     getEntitlement(user.id),
+    getStats(user.id),
+    db.select().from(tables.goals).where(eq(tables.goals.userId, user.id)).orderBy(asc(tables.goals.createdAt)),
+    db.select().from(tables.journalEntries).where(eq(tables.journalEntries.userId, user.id)).orderBy(desc(tables.journalEntries.date), desc(tables.journalEntries.createdAt)).limit(200),
   ]);
   const done: Record<string, 1> = {};
   for (const p of progress) done[p.lessonId] = 1;
@@ -58,6 +65,9 @@ export async function loadUserState(user: SessionUser) {
       currentPeriodEnd: ent.currentPeriodEnd?.toISOString() ?? null,
     },
     signalsEnabled: SIGNALS_ENABLED,
+    stats,
+    goals: goalRows.map((g): GoalRow => ({ id: g.id, name: g.name, icon: g.icon, targetPence: g.targetPence, savedPence: g.savedPence, targetMonth: g.targetMonth, milestones: g.milestones })),
+    journal: journalRows.map((j): JournalRow => ({ id: j.id, date: j.date, symbol: j.symbol, direction: j.direction, pnlPence: j.pnlPence, planned: j.planned, emotionBefore: j.emotionBefore, emotionAfter: j.emotionAfter, reason: j.reason })),
   };
 }
 

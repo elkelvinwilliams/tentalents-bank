@@ -5,8 +5,20 @@ import { TRACKS, GLOSSARY } from "../src/content/seed-data";
 
 const q = (s: string) => "'" + String(s).replace(/'/g, "''") + "'";
 
-let migration = readFileSync("drizzle/0000_init.sql", "utf8")
+import { readdirSync } from "node:fs";
+const migrationFiles = readdirSync("drizzle").filter(f => f.endsWith(".sql")).sort();
+const readMigration = (f: string) => readFileSync("drizzle/" + f, "utf8")
   .split("--> statement-breakpoint").map(s => s.trim()).filter(Boolean).join("\n\n");
+let migration = migrationFiles.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n");
+
+// Upgrade file for databases that already ran the first setup: later migrations only.
+const later = migrationFiles.slice(1);
+if (later.length) {
+  writeFileSync("../ten-talents-academy-neon-upgrade.sql",
+    `-- Ten Talents Academy — UPGRADE (run only if you already ran ten-talents-academy-neon-setup.sql before ${later[0].slice(0, 4)})\n-- Adds: ${later.join(", ")}. Generated ${new Date().toISOString().slice(0, 10)}.\n\n` +
+    later.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n") + "\n");
+  console.log("wrote ten-talents-academy-neon-upgrade.sql");
+}
 
 
 let out = `-- Ten Talents Academy — full database build (schema + seed)

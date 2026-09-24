@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, tables } from "@/db";
 import { eq } from "drizzle-orm";
 import { currentUser } from "@/lib/auth";
+import { award } from "@/lib/gamify";
 
-/** Persists onboarding answers, journey stage and certificate name. */
+/** Persists onboarding answers, journey stage and certificate name.
+ *  Finishing the readiness assessment (stage -> tour) pays XP once. */
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Signed out." }, { status: 401 });
@@ -22,5 +24,7 @@ export async function POST(req: NextRequest) {
     // keep future certificates in sync; already-issued ones keep their name
   }
   if (Object.keys(patch).length) await db.update(tables.users).set(patch).where(eq(tables.users.id, user.id));
-  return NextResponse.json({ ok: true });
+  let xp = 0;
+  if (patch.stage === "tour") xp = (await award(user.id, "assessment", "onboarding")).awarded;
+  return NextResponse.json({ ok: true, xp });
 }

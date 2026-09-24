@@ -3,6 +3,7 @@ import { db, tables } from "@/db";
 import { eq } from "drizzle-orm";
 import { currentUser, nid } from "@/lib/auth";
 import { getEntitlement } from "@/lib/entitlements";
+import { award } from "@/lib/gamify";
 
 /* Quiz play, server-authoritative:
    GET    -> questions with options only (correct answers never leave the server)
@@ -49,7 +50,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     quiz.questions.forEach((q, i) => { if (choices[i] === q.correct) correct++; });
     const scorePct = Math.round((correct / quiz.questions.length) * 100);
     await db.insert(tables.quizAttempts).values({ id: nid(), userId: g.user.id, quizId: id, scorePct });
-    return NextResponse.json({ scorePct, pass: scorePct >= quiz.passPct });
+    const pass = scorePct >= quiz.passPct;
+    // first pass of a module quiz pays learning XP once
+    const r = pass ? await award(g.user.id, "quiz_pass", id) : null;
+    return NextResponse.json({ scorePct, pass, xp: r?.awarded ?? 0, badges: r?.newBadges ?? [], stats: r?.stats ?? null });
   }
 
   const i = Number(body.i), n = Number(body.n);
