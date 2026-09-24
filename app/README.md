@@ -22,7 +22,9 @@ configured" error until keys exist.
 the local database (delete `.pglite/` and re-run `db:setup` if that happens).
 Production uses `DATABASE_URL` (Neon) where this doesn't apply.
 
-## The app (Sep 2026) — one product with the vision prototype
+## Ten Talents Academy — the app (Sep 2026)
+
+The app *is* the Academy. It begins with the ten assessment questions, shows a readiness profile and a recommended track, then opens the Academy-first Home.
 
 Phone-first shell with five tabs. Learning is gamified; trading never is.
 

@@ -13,6 +13,7 @@ import type { TrackMeta, GoalRow, JournalRow } from "@/lib/app-data";
 import { api, money, Ring, XpCard, TrackHero, Sheet, Toasts, useToasts, setTheme, getTheme, Disc, type Stats, type ToastFn } from "./ui";
 import { levelOf, levelTitle, BADGES } from "@/lib/levels";
 import { StewardTab, gpct } from "./screens/Steward";
+import { readiness } from "@/lib/readiness";
 import { TradeTab } from "./screens/Trade";
 import { WisdomList, WisdomStudy } from "./screens/Wisdom";
 
@@ -33,7 +34,7 @@ const QUESTIONS: [string, string[]][] = [
 ];
 
 const TOUR: [IconName, string, string][] = [
-  ["seed", "Markets × Wealth × Wisdom", "Learn → Understand → Simulate → then decide. Four tracks, a simulator, a journal, a wisdom library and your own goals — in one place."],
+  ["seed", "Ten Talents Academy", "Learn → Understand → Simulate → then decide. Four tracks, a simulator, a journal, a wisdom library and your own goals — one Academy."],
   ["learn", "Four tracks, in order", "Money Foundations first. Each track builds on the one before it, so nothing arrives before you're ready for it."],
   ["star", "Learning is gamified", "XP, levels, streaks and badges — for lessons, quizzes and saving discipline. Never for trading. Trading is not a game."],
   ["trade", "Practise before it costs you", "A demo simulator that shows money-at-risk before upside, scenario drills that practise judgement, and a journal that shows you your own behaviour."],
@@ -69,7 +70,7 @@ type View =
 
 export default function AcademyApp({ content, state }: { content: Content; state: UserState | null }) {
   const [S, setS] = useState<UserState | null>(state);
-  const [screen, setScreen] = useState<"gate" | "auth" | "onboard" | "tour" | "app">(
+  const [screen, setScreen] = useState<"gate" | "auth" | "onboard" | "results" | "tour" | "app">(
     state ? (state.stage === "onboard" ? "onboard" : state.stage === "tour" ? "tour" : "app") : "gate"
   );
   const [authMode, setAuthMode] = useState<"signup" | "signin" | "forgot" | "reset">("signup");
@@ -156,11 +157,36 @@ export default function AcademyApp({ content, state }: { content: Content; state
               setS({ ...S, answers });
               if (qIdx < QUESTIONS.length - 1) { setQIdx(qIdx + 1); api("/api/state", { answers }).catch(() => {}); }
               else {
-                setScreen("tour");
+                setScreen("results");
                 api("/api/state", { answers, stage: "tour" }).then((r) => { if (r.xp) { toast(r.xp, "Assessment done"); refreshStats(); } }).catch(() => {});
               }
             }}><span className="ab">{String.fromCharCode(65 + n)}</span>{o}</button>
           ))}
+        </div>
+        {FOOT}
+      </div><Toasts items={toasts} /></div>
+    );
+  }
+
+  if (screen === "results") {
+    const rd = readiness(S.answers);
+    return (
+      <div className="shell"><div className="splash">
+        <div className="pad reveal" style={{ paddingTop: "calc(24px + env(safe-area-inset-top,0px))" }}>
+          <span className="eyebrow">Your readiness profile</span>
+          <div className="card xpcard" style={{ marginTop: 14, textAlign: "center" }}>
+            <Ring pct={rd.score} size={120} label={String(rd.score)} />
+            <h1 style={{ fontSize: 26, marginTop: 10 }}>{rd.label}</h1>
+            <p style={{ color: "#c9d3de", fontSize: 14, marginTop: 8 }}>{rd.blurb}</p>
+          </div>
+          <div className="card" style={{ marginTop: 12, background: "rgba(255,255,255,.05)", borderColor: "rgba(239,235,206,.16)" }}>
+            <span className="eyebrow">Recommended for you · from your answers</span>
+            <h3 style={{ fontSize: 17, color: "#fff", margin: "8px 0 4px" }}>{rd.trackName}</h3>
+            <p style={{ color: "#c3cbd6", fontSize: 13.5 }}>{rd.reason}</p>
+            <ul style={{ margin: "12px 0 0", paddingLeft: 18, color: "#c3cbd6", fontSize: 13.5, lineHeight: 1.6 }}>{rd.next.map((t) => <li key={t}>{t}</li>)}</ul>
+          </div>
+          <button className="btn" style={{ marginTop: 18 }} onClick={() => setScreen("tour")}>Continue {I.arrow}</button>
+          <Disc>A guide to where to start — not a verdict, not advice. You can retake the assessment from your Profile.</Disc>
         </div>
         {FOOT}
       </div><Toasts items={toasts} /></div>
@@ -260,15 +286,16 @@ export default function AcademyApp({ content, state }: { content: Content; state
   } else if (tab === "home") {
     const n = nextUp();
     const topGoal = [...S.goals].sort((a, b) => gpct(b) - gpct(a))[0];
+    const rd = readiness(S.answers);
+    const recTrack = tracks.find((t) => t.id === rd.track) ?? tracks[0];
     body = (<>
       <header className="hdr">
         <button className="av" onClick={() => go("profile")} aria-label="Profile">{initial}</button>
-        <div className="hi"><div className="g">Steward today. Greater tomorrow.</div><div className="n">Hi, {firstName}</div></div>
+        <div className="hi"><div className="g">Ten Talents Academy</div><div className="n">Hi, {firstName}</div></div>
         <span className="streak" title="Learning streak">{I.flame} {stats.streak}</span>
       </header>
       <div className="pad">
-        <XpCard stats={stats} />
-        <div className="sec"><h2>Continue learning</h2><button className="link" onClick={() => go("learn")}>All courses</button></div>
+        <div className="sec" style={{ marginTop: 6 }}><h2>Continue learning</h2><button className="link" onClick={() => go("learn")}>All courses</button></div>
         {n ? (
           <button className="card coursewide reveal" onClick={() => openLesson(n.t.id, n.l)}>
             <span className="th"><TrackHero kind={n.t.id} h={74} /></span>
@@ -278,6 +305,22 @@ export default function AcademyApp({ content, state }: { content: Content; state
         ) : (
           <div className="card"><h3>Every lesson done</h3><p className="muted" style={{ fontSize: 13.5 }}>Your certificates are on the Profile tab.</p></div>
         )}
+        <div className="hscroll" style={{ marginTop: 12 }}>
+          {tracks.map((t, i) => { const p = trackProgress(t); return (
+            <button key={t.id} className="wtile" style={{ width: 150, display: "flex", alignItems: "center", gap: 10, padding: 12 }} onClick={() => setView({ kind: "track", t: t.id })}>
+              <Ring pct={p.pct} size={44} label={`${p.pct}%`} track="var(--surface-2)" color="var(--ink)" />
+              <span style={{ minWidth: 0 }}><span className="s" style={{ fontSize: 12.5, display: "block", lineHeight: 1.2 }}>{t.name}</span><span className="n">{i + 1} of 4 · {p.got}/{p.all}</span></span>
+            </button>
+          ); })}
+        </div>
+        <div className="sec"><h2>Recommended for you</h2><span className="faint" style={{ fontSize: 12 }}>from your answers</span></div>
+        <button className="card card-gold reveal" style={{ width: "100%", textAlign: "left" }} onClick={() => setView({ kind: "track", t: recTrack.id })}>
+          <div className="between"><span className="eyebrow">{rd.label} · readiness {rd.score}</span>{I.arrow}</div>
+          <h3 style={{ fontSize: 16, margin: "8px 0 4px" }}>{recTrack.name}</h3>
+          <p className="muted" style={{ fontSize: 13.5 }}>{rd.reason}</p>
+        </button>
+        <div style={{ height: 14 }} />
+        <XpCard stats={stats} />
         <div className="sec"><h2>Steward</h2><button className="link" onClick={() => go("steward")}>{S.goals.length ? "All goals" : "Open"}</button></div>
         {topGoal ? (
           <button className="card coursewide reveal" onClick={() => go("steward")}>
@@ -294,7 +337,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
         <div className="sec"><h2>Your snapshot</h2></div>
         <div className="grid2">
           <div className="stat"><div className="k">Lessons</div><div className="v">{doneCount}<span className="faint" style={{ fontSize: 13 }}>/{totalLessons}</span></div></div>
-          <div className="stat"><div className="k">Quizzes passed</div><div className="v">{Object.values(S.scores).filter(s => s >= 70).length}</div></div>
+          <div className="stat"><div className="k">Readiness</div><div className="v">{rd.score}<span className="faint" style={{ fontSize: 13 }}>/100</span></div></div>
         </div>
         {!member && (
           <div className="card card-gold reveal" style={{ marginTop: 12 }}>
@@ -338,7 +381,8 @@ export default function AcademyApp({ content, state }: { content: Content; state
   } else if (tab === "steward") {
     body = <StewardTab goals={S.goals} setGoals={(g) => setS({ ...S, goals: g })} toast={toast} onXp={refreshStats} openStudy={() => setView({ kind: "study", n: "01" })} />;
   } else {
-    body = <Profile S={S} setS={setS} tracks={tracks} trackProgress={trackProgress} doneCount={doneCount} totalLessons={totalLessons} openPaywall={() => setPaywall(true)} initial={initial} />;
+    body = <Profile S={S} setS={setS} tracks={tracks} trackProgress={trackProgress} doneCount={doneCount} totalLessons={totalLessons} openPaywall={() => setPaywall(true)} initial={initial}
+      onRetake={() => { setS({ ...S, answers: {} }); setQIdx(0); api("/api/state", { stage: "onboard", answers: {} }).catch(() => {}); setScreen("onboard"); }} />;
   }
 
   const deep = view.kind !== "tabs";
@@ -365,7 +409,7 @@ function Gate({ consent, setConsent, onContinue }: { consent: boolean; setConsen
       <div className="gate-head">
         <img className="logo" src="/logo-hand-gold.png" alt="" />
         <span className="wordmark">Ten Talents</span>
-        <div className="sub">Markets · Wealth · Wisdom</div>
+        <div className="sub">Academy · Markets · Wealth · Wisdom</div>
       </div>
       <div className="verse"><div className="dots3">•••</div>
         <p>He who had received the <b>five</b> talents went at once and traded with them, and he made <b>five talents <i>more</i></b>.</p>
@@ -421,7 +465,7 @@ function Auth({ mode, setMode, consent, resetToken, flash, onDone }: {
 
   return (
     <div className="shell"><div className="splash">
-      <div style={{ textAlign: "center", paddingTop: "calc(28px + env(safe-area-inset-top,0px))" }}><div className="mark"><img src="/logo-hand-gold.png" alt="" style={{ height: 56 }} /></div><div className="eyebrow" style={{ marginTop: 12 }}>Markets · Wealth · Wisdom</div></div>
+      <div style={{ textAlign: "center", paddingTop: "calc(28px + env(safe-area-inset-top,0px))" }}><div className="mark"><img src="/logo-hand-gold.png" alt="" style={{ height: 56 }} /></div><div className="eyebrow" style={{ marginTop: 12 }}>Ten Talents Academy</div></div>
       <form className="authwrap" onSubmit={e => { e.preventDefault(); submit(); }}>
         <h1>{title}</h1>
         <p className="sub">{sub}</p>
@@ -577,10 +621,10 @@ function Paywall({ S, onClose }: { S: UserState; onClose: () => void }) {
 }
 
 /* ---------- profile / account ---------- */
-function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial }: {
+function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial, onRetake }: {
   S: UserState; setS: (s: UserState) => void; tracks: TrackMeta[];
   trackProgress: (t: TrackMeta) => { got: number; all: number; pct: number };
-  doneCount: number; totalLessons: number; openPaywall: () => void; initial: string;
+  doneCount: number; totalLessons: number; openPaywall: () => void; initial: string; onRetake: () => void;
 }) {
   const certs = tracks.filter(t => trackProgress(t).pct === 100);
   const [busy, setBusy] = useState<string | null>(null);
@@ -611,6 +655,21 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
           <div><div className="mono" style={{ fontSize: 20, color: "#fff" }}>{certs.length}</div><div style={{ fontSize: 11, color: "#c9d3de" }}>certificates</div></div>
         </div>
       </div>
+      {(() => { const rd = readiness(S.answers); return (
+        <div className="card" style={{ marginTop: 12 }}>
+          <div className="row" style={{ gap: 14 }}>
+            <Ring pct={rd.score} size={64} label={String(rd.score)} track="var(--surface-2)" color="var(--ink)" />
+            <div style={{ flex: 1 }}><div className="eyebrow">Readiness · from your answers</div><h3 style={{ fontSize: 16, marginTop: 4 }}>{rd.label}</h3><p className="muted" style={{ fontSize: 13 }}>Start here: {rd.trackName}</p></div>
+          </div>
+          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+            <button className="btn btn-ghost btn-sm" onClick={onRetake}>Retake assessment</button>
+            <button className="btn btn-ghost btn-sm" onClick={async () => {
+              const url = window.location.origin + "/?ref=friend"; const text = "Learn how money and markets actually work with me on Ten Talents Academy — first lesson free.";
+              try { if (navigator.share) await navigator.share({ title: "Ten Talents Academy", text, url }); else { await navigator.clipboard.writeText(text + " " + url); alert("Invite copied — paste it anywhere."); } } catch { /* cancelled */ }
+            }}>Invite a friend</button>
+          </div>
+        </div>
+      ); })()}
       <div className="sec"><h2>Badges</h2><span className="faint" style={{ fontSize: 13 }}>{earned.size}/{BADGES.length}</span></div>
       <div className="hscroll">{BADGES.map(b => <div key={b.id} className={`badge ${earned.has(b.id) ? "" : "locked"}`} title={b.how}><span className="bic">{earned.has(b.id) ? I[b.icon as IconName] : I.lock}</span><span>{b.name}</span></div>)}</div>
 

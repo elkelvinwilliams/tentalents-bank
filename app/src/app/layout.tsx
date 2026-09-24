@@ -7,8 +7,8 @@ const jakarta = Plus_Jakarta_Sans({ weight: ["400", "500", "600", "700", "800"],
 const plexMono = IBM_Plex_Mono({ weight: ["500", "600"], subsets: ["latin"], variable: "--font-plex-mono" });
 
 export const metadata: Metadata = {
-  title: "Ten Talents — Markets × Wealth × Wisdom",
-  description: "Learn, understand, simulate — then decide. The Ten Talents app: Academy, simulator, journal, wisdom library and Steward goals. Education, not advice.",
+  title: "Ten Talents Academy",
+  description: "Ten Talents Academy — learn, understand, simulate, then decide. Four tracks, a risk-first simulator, a journal, a wisdom library and your own goals. Education, not advice.",
   icons: { icon: "/logo-hand-gold.png" },
 };
 
