@@ -22,6 +22,23 @@ configured" error until keys exist.
 the local database (delete `.pglite/` and re-run `db:setup` if that happens).
 Production uses `DATABASE_URL` (Neon) where this doesn't apply.
 
+## The app (Sep 2026) — one product with the vision prototype
+
+Phone-first shell with five tabs. Learning is gamified; trading never is.
+
+- **Home** — greeting, learning streak, level/XP card with daily goal, continue learning, top goal
+- **Learn** — Courses (four tracks, lessons, server-scored quizzes, certificates) · Wisdom (Biblical Mysteries, Biblical Wealth) · Glossary
+- **Trade** — demo simulator (device-local, illustrative prices), scenario drills (server-scored, XP once per drill), trading journal (per user; never earns XP)
+- **Steward** — user-entered savings goals with progress, monthly-needed hint, quick top-ups; milestones pay XP; a planning tool that holds no money
+- **Profile** — level, streak, badges, account, billing, certificates, appearance
+
+XP is awarded only by the server (`src/lib/gamify.ts`, `xp_events` unique on user+kind+ref so nothing pays twice):
+lesson complete +40 · module quiz first pass +100 · readiness assessment +60 · goal set +30 · goal update +10 · 25/50/75 % +25 · goal complete +100 · scenario drill +25.
+Badges: First Steps, 7-Day Streak, Quiz Ace, Steward, Risk Aware, Good Judgement, Sage.
+
+New tables (migration `0001_steward`): `user_stats`, `xp_events`, `goals`, `journal_entries`. Existing Neon databases:
+run `ten-talents-academy-neon-upgrade.sql` (repo root) once. Fresh databases: `ten-talents-academy-neon-setup.sql` includes everything.
+
 ## Deploy (Vercel)
 
 1. Vercel project → root directory `app/`. Add env vars from `.env.example`
