@@ -17,14 +17,14 @@
   <header class="site-header">
     <div class="container nav">
       <a href="index.html" class="brand" aria-label="Ten Talents — home"><span class="mark" aria-hidden="true"><img class="mark-hand" src="assets/img/logo-hand-only.png" alt="" width="36" height="36" /><img class="mark-coin" src="assets/img/logo-coin-only.png" alt="" width="36" height="36" /></span><span class="brand-name">Ten Talents<small>INVESTMENT HUB</small></span></a>
-      <nav class="nav-links" aria-label="Primary"><a href="index.html">Home</a><a href="ventures.html">Portfolio</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="about.html">About</a><a href="community.html">Community</a><a href="contact.html" aria-current="page">Contact</a></nav>
+      <nav class="nav-links" aria-label="Primary"><a href="index.html">Home</a><a href="ventures.html">Portfolio</a><a href="services.html">Services</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="about.html">About</a><a href="community.html">Community</a><a href="contact.html" aria-current="page">Contact</a></nav>
       <div class="nav-cta">
         <a href="pitch.html" class="btn btn-gold">Pitch us <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span></button>
       </div>
     </div>
   </header>
-  <div class="mobile-menu" id="mobileMenu"><a href="index.html">Home</a><a href="ventures.html">Portfolio</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="about.html">About</a><a href="community.html">Community</a><a href="contact.html" aria-current="page">Contact</a><a href="pitch.html" class="btn btn-gold">Pitch us</a></div>
+  <div class="mobile-menu" id="mobileMenu"><a href="index.html">Home</a><a href="ventures.html">Portfolio</a><a href="services.html">Services</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="about.html">About</a><a href="community.html">Community</a><a href="contact.html" aria-current="page">Contact</a><a href="pitch.html" class="btn btn-gold">Pitch us</a></div>
   <main>
     <section class="page-hero">
       <div class="container">
@@ -42,7 +42,7 @@
               <div class="field"><label for="cn">Name</label><input id="cn" name="name" type="text" autocomplete="name" placeholder="Your name" required /></div>
               <div class="field"><label for="ce">Email</label><input id="ce" name="email" type="email" autocomplete="email" placeholder="you@example.com" required /></div>
             </div>
-            <div class="field"><label for="ct">Topic</label><select id="ct" name="topic"><option>General question</option><option>Joining the community</option><option>Partnership</option><option>Press</option><option>Complaint</option></select></div>
+            <div class="field"><label for="ct">Topic</label><select id="ct" name="topic"><option value="general">General question</option><option value="pitch">Pitching a project</option><option value="mentoring">Founder mentoring &amp; advisory</option><option value="workshop">Workshop / speaking</option><option value="partner">Partner programme</option><option value="community">Joining the community</option><option value="press">Press</option><option value="complaint">Complaint</option></select></div>
             <div class="field"><label for="cm">Message</label><textarea id="cm" name="message" placeholder="What&rsquo;s on your mind?" required></textarea></div>
             <button type="submit" class="btn btn-gold">Send message <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <p class="form-success" hidden style="color:var(--gold-text);font-weight:600">Thank you — we&rsquo;ll come back to you soon.</p>
@@ -64,7 +64,7 @@
           <a href="index.html" class="brand" aria-label="Ten Talents — home"><span class="mark" aria-hidden="true"><img class="mark-hand" src="assets/img/logo-hand-only.png" alt="" width="36" height="36" /><img class="mark-coin" src="assets/img/logo-coin-only.png" alt="" width="36" height="36" /></span><span class="brand-name">Ten Talents<small>INVESTMENT HUB</small></span></a>
           <p>An investment hub. We invest our own capital in markets and in projects and ventures we back — and teach how it works. Founded 2026, built in the open.</p>
         </div>
-        <div class="footer-col"><h4>Explore</h4><a href="ventures.html">Portfolio</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="education.html">Education</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
+        <div class="footer-col"><h4>Explore</h4><a href="ventures.html">Portfolio</a><a href="services.html">Services</a><a href="pitch.html">Pitch us</a><a href="academy.html">Academy</a><a href="education.html">Education</a><a href="about.html">About</a><a href="contact.html">Contact</a></div>
         <div class="footer-col"><h4>Community</h4><a href="community.html">WhatsApp</a><a href="community.html">Telegram</a><a href="community.html">Instagram · TikTok</a></div>
         <div class="footer-col"><h4>Legal</h4><a href="legal.html#terms">Terms</a><a href="legal.html#privacy">Privacy</a><a href="legal.html#complaints">Complaints</a><a href="legal.html#disclaimer">Disclaimer</a></div>
       </div>
@@ -75,5 +75,6 @@
     </div>
   </footer>
   <script src="assets/js/main.js"></script>
+<script>(function(){try{var t=new URLSearchParams(location.search).get("topic");var s=document.getElementById("ct");if(t&&s){s.value=t;}}catch(e){}})();</script>
 </body>
 </html>
