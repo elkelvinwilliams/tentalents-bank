@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Libre_Caslon_Display, Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Libre_Caslon_Display, Inter, Manrope } from "next/font/google";
 import "./globals.css";
 
 const caslonDisplay = Libre_Caslon_Display({ weight: "400", subsets: ["latin"], variable: "--font-caslon-display" });
-const jakarta = Plus_Jakarta_Sans({ weight: ["400", "500", "600", "700", "800"], subsets: ["latin"], variable: "--font-jakarta" });
-const plexMono = IBM_Plex_Mono({ weight: ["500", "600"], subsets: ["latin"], variable: "--font-plex-mono" });
+const inter = Inter({ weight: ["400", "500", "600", "700"], subsets: ["latin"], variable: "--font-inter" });
+const manrope = Manrope({ weight: ["600", "700", "800"], subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   title: "Ten Talents Academy",
@@ -21,7 +21,7 @@ const THEME_BOOT = `try{var t=localStorage.getItem('tt-theme');if(t==='light'||t
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${caslonDisplay.variable} ${jakarta.variable} ${plexMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${caslonDisplay.variable} ${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} /></head>
       <body>{children}</body>
     </html>

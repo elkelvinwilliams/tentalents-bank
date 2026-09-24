@@ -202,7 +202,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
         <div className="pagehdr" style={{ background: "transparent", backdropFilter: "none" }}><div className="mark" style={{ margin: "0 auto" }}>{LOGO}</div><span className="mono" style={{ color: "#c3cbd6", fontSize: 13, position: "absolute", right: 18 }}>{tourIdx + 1}/{TOUR.length}</span></div>
         <div className="tour reveal" key={tourIdx}>
           <div className="tourbadge">{I[icon]}</div>
-          <h1 style={{ fontSize: 28 }}>{title}</h1>
+          <h1 className="brand-serif" style={{ fontSize: 28 }}>{title}</h1>
           <p className="sub" style={{ marginTop: 14, fontSize: 15 }}>{body}</p>
           <div className="dots">{TOUR.map((_, n) => <i key={n} className={n === tourIdx ? "on" : ""} />)}</div>
         </div>
@@ -646,7 +646,7 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
     <div className="pad">
       <div className="card xpcard reveal" style={{ textAlign: "center" }}>
         <div className="av" style={{ margin: "0 auto 12px", width: 64, height: 64, fontSize: 26 }}>{initial}</div>
-        <h2 style={{ fontSize: 22, fontFamily: "var(--serif)", fontWeight: 400 }}>{S.name || S.email.split("@")[0]}</h2>
+        <h2 style={{ fontSize: 22, color: "#fff" }}>{S.name || S.email.split("@")[0]}</h2>
         <div className="ttl" style={{ marginTop: 2 }}>Level {levelOf(stats.xp)} · {levelTitle(stats.xp)} · {stats.xp.toLocaleString()} XP</div>
         <div className="xpbar"><i style={{ width: `${Math.min(100, ((stats.xp % 1500) / 1500) * 100)}%` }} /></div>
         <div className="row" style={{ justifyContent: "center", gap: 24, marginTop: 14 }}>
