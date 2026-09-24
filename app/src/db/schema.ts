@@ -175,6 +175,81 @@ export const journalEntries = pgTable("journal_entries", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("journal_user_idx").on(t.userId)]);
 
+/* ---------- build: wealth, health, reviews, debts, giving, talents (user-entered; never advice) ---------- */
+
+export type WealthAssets = { cash: number; savings: number; investments: number; property: number; business: number; other: number };
+export type WealthLiabilities = { mortgage: number; loans: number; credit: number; other: number };
+
+export const wealthSnapshots = pgTable("wealth_snapshots", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  assets: jsonb("assets").$type<WealthAssets>().notNull(),          // pence
+  liabilities: jsonb("liabilities").$type<WealthLiabilities>().notNull(), // pence
+  note: text("note").notNull().default(""),
+  takenAt: timestamp("taken_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("wealth_user_idx").on(t.userId)]);
+
+export const healthChecks = pgTable("health_checks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  answers: jsonb("answers").$type<Record<string, number>>().notNull(), // dimension -> 1..5
+  takenAt: timestamp("taken_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("health_user_idx").on(t.userId)]);
+
+export const weeklyReviews = pgTable("weekly_reviews", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  week: text("week").notNull(), // ISO week, YYYY-Www
+  answers: jsonb("answers").$type<Record<string, string>>().notNull().default({}),
+  skipped: boolean("skipped").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("review_week_uq").on(t.userId, t.week)]);
+
+export const debts = pgTable("debts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  balancePence: integer("balance_pence").notNull(),
+  aprBp: integer("apr_bp").notNull().default(0), // basis points, 1999 = 19.99%
+  minPaymentPence: integer("min_payment_pence").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("debts_user_idx").on(t.userId)]);
+
+export const givingEntries = pgTable("giving_entries", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  month: text("month").notNull(), // YYYY-MM
+  pct: integer("pct").notNull().default(0), // % of income given — amounts never required
+  note: text("note").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("giving_month_uq").on(t.userId, t.month)]);
+
+export const talents = pgTable("talents", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: text("category").notNull().default("skill"), // skill | habit | knowledge | relationship
+  level: integer("level").notNull().default(1), // 1..5, self-assessed
+  note: text("note").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("talents_user_idx").on(t.userId)]);
+
+/* ---------- cohorts: learn together (learning progress only — never money) ---------- */
+
+export const cohorts = pgTable("cohorts", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull(), // join code
+  leaderId: text("leader_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("cohort_code_uq").on(t.code)]);
+
+export const cohortMembers = pgTable("cohort_members", {
+  cohortId: text("cohort_id").notNull().references(() => cohorts.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("cohort_member_uq").on(t.cohortId, t.userId), index("cohort_member_user_idx").on(t.userId)]);
+
 export const webhookEvents = pgTable("webhook_events", {
   id: text("id").primaryKey(), // Stripe event id — idempotency
   type: text("type").notNull(),

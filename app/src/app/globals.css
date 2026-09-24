@@ -337,3 +337,29 @@ label.flabel{margin-top:14px}
 .edtools button.on,.edtools button:hover{color:var(--gold);border-color:var(--card-gold-line)}
 .notice{margin:16px 0;padding:14px 16px;border:1px solid var(--card-gold-line);border-radius:14px;font-size:13.5px;color:var(--muted);line-height:1.55;background:var(--card-gold)}
 .notice b{color:var(--gold)}
+
+/* ---------- expansion pass: build · tools · safety · AI · passport ---------- */
+.bars{display:flex;align-items:flex-end;gap:3px;height:56px}
+.bars i{flex:1;min-width:2px;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,#f5cf98,#edb671 60%,#9a6f18);opacity:.95;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.card:not(.xpcard) .bars i{background:linear-gradient(180deg,var(--gold-bright),var(--gold))}
+.stages{display:flex;gap:5px;margin-top:14px}
+.stages i{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.14)}
+.stages i.part{background:linear-gradient(90deg,#edb671 50%,rgba(255,255,255,.14) 50%)}
+.stages i.on{background:linear-gradient(90deg,#9a6f18,#edb671,#f5cf98);box-shadow:0 0 10px rgba(237,182,113,.5)}
+.ai-ind{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-tint);border:1px solid var(--card-gold-line);border-radius:12px;padding:8px 12px}
+.ai-ind svg{width:16px;height:16px}
+.aitab{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+.aitab th{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:6px 12px 6px 0;border-bottom:1px solid var(--line)}
+.aitab td{padding:6px 12px 6px 0;border-bottom:1px solid var(--line)} .aitab tr:last-child td{border-bottom:0}
+.passport{background:var(--xp-grad);color:#f1ece0;border:1px solid rgba(237,182,113,.35);border-radius:22px;padding:18px;position:relative;overflow:hidden;box-shadow:0 24px 50px -24px rgba(1,25,54,.8)}
+.passport::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 100% 0%,rgba(237,182,113,.28),transparent 60%),repeating-linear-gradient(135deg,transparent 0 14px,rgba(255,255,255,.025) 14px 15px);pointer-events:none}
+.passport>*{position:relative}
+.nextstep{display:flex;align-items:center;gap:14px;background:var(--xp-grad);color:#fff;border-radius:22px;padding:16px;border:1px solid rgba(237,182,113,.25);box-shadow:0 24px 50px -24px rgba(1,25,54,.8);width:100%;text-align:left}
+.nextstep .ic{width:46px;height:46px;border-radius:14px;background:rgba(237,182,113,.18);display:grid;place-items:center;color:#edb671;flex:none}
+.nextstep h3{color:#fff;font-size:16px} .nextstep p{color:#c9d3de;font-size:13px;margin-top:2px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12px;font-weight:600;color:var(--ink)}
+.tile .ic{width:36px;height:36px;border-radius:12px;background:var(--gold-tint);color:var(--gold);display:grid;place-items:center}
+textarea.inp{line-height:1.5}
+input[type=range]{height:28px}
+@media (max-width:360px){.tiles{grid-template-columns:repeat(2,1fr)}}

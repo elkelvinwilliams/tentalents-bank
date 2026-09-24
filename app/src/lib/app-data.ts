@@ -1,8 +1,9 @@
 import { db, tables } from "@/db";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { getEntitlement, SIGNALS_ENABLED } from "./entitlements";
 import { getStats } from "./gamify";
 import type { SessionUser } from "./auth";
+import { isoWeek } from "./week";
 
 export type LessonMeta = { id: string; title: string; minutes: number; isFreePreview: boolean };
 export type ModuleMeta = { id: string; name: string; kind: string; lessons: LessonMeta[]; quizId: string | null; quizCount: number };
@@ -36,8 +37,10 @@ export async function loadContent(): Promise<{ tracks: TrackMeta[]; glossary: [s
 export type GoalRow = { id: string; name: string; icon: string; targetPence: number; savedPence: number; targetMonth: string | null; milestones: number[] };
 export type JournalRow = { id: string; date: string; symbol: string; direction: string; pnlPence: number; planned: boolean; emotionBefore: string; emotionAfter: string; reason: string };
 
+export type BuildSummary = { health: Record<string, number> | null; reviewedWeek: boolean; netWorthPence: number | null; wealthTakenAt: string | null; debts: number; talents: number; givingMonths: number };
+
 export async function loadUserState(user: SessionUser) {
-  const [progress, attempts, certs, ent, stats, goalRows, journalRows] = await Promise.all([
+  const [progress, attempts, certs, ent, stats, goalRows, journalRows, health, review, wealth, debtRows, talentRows, givingRows] = await Promise.all([
     db.select().from(tables.lessonProgress).where(eq(tables.lessonProgress.userId, user.id)),
     db.select().from(tables.quizAttempts).where(eq(tables.quizAttempts.userId, user.id)),
     db.select().from(tables.certificates).where(eq(tables.certificates.userId, user.id)),
@@ -45,7 +48,22 @@ export async function loadUserState(user: SessionUser) {
     getStats(user.id),
     db.select().from(tables.goals).where(eq(tables.goals.userId, user.id)).orderBy(asc(tables.goals.createdAt)),
     db.select().from(tables.journalEntries).where(eq(tables.journalEntries.userId, user.id)).orderBy(desc(tables.journalEntries.date), desc(tables.journalEntries.createdAt)).limit(200),
+    db.select().from(tables.healthChecks).where(eq(tables.healthChecks.userId, user.id)).orderBy(desc(tables.healthChecks.takenAt)).limit(1),
+    db.select({ id: tables.weeklyReviews.id }).from(tables.weeklyReviews).where(and(eq(tables.weeklyReviews.userId, user.id), eq(tables.weeklyReviews.week, isoWeek(new Date())))),
+    db.select().from(tables.wealthSnapshots).where(eq(tables.wealthSnapshots.userId, user.id)).orderBy(desc(tables.wealthSnapshots.takenAt)).limit(1),
+    db.select({ id: tables.debts.id }).from(tables.debts).where(eq(tables.debts.userId, user.id)),
+    db.select({ id: tables.talents.id }).from(tables.talents).where(eq(tables.talents.userId, user.id)),
+    db.select({ id: tables.givingEntries.id }).from(tables.givingEntries).where(eq(tables.givingEntries.userId, user.id)),
   ]);
+  const w = wealth[0];
+  const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
+  const build: BuildSummary = {
+    health: health[0]?.answers ?? null,
+    reviewedWeek: review.length > 0,
+    netWorthPence: w ? sum(w.assets) - sum(w.liabilities) : null,
+    wealthTakenAt: w ? w.takenAt.toISOString() : null,
+    debts: debtRows.length, talents: talentRows.length, givingMonths: givingRows.length,
+  };
   const done: Record<string, 1> = {};
   for (const p of progress) done[p.lessonId] = 1;
   const scores: Record<string, number> = {};
@@ -67,6 +85,7 @@ export async function loadUserState(user: SessionUser) {
     signalsEnabled: SIGNALS_ENABLED,
     stats,
     goals: goalRows.map((g): GoalRow => ({ id: g.id, name: g.name, icon: g.icon, targetPence: g.targetPence, savedPence: g.savedPence, targetMonth: g.targetMonth, milestones: g.milestones })),
+    build,
     journal: journalRows.map((j): JournalRow => ({ id: j.id, date: j.date, symbol: j.symbol, direction: j.direction, pnlPence: j.pnlPence, planned: j.planned, emotionBefore: j.emotionBefore, emotionAfter: j.emotionAfter, reason: j.reason })),
   };
 }
