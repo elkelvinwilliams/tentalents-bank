@@ -23,6 +23,12 @@ export const XP = {
   goal_ms: 25,
   goal_done: 100,
   drill: 25,
+  safety: 25,   // Spot-the-Scam scenario, once each
+  journey: 25,  // Wealth Builder stage scenario, once each
+  review: 20,   // weekly reflection, once per week
+  health: 20,   // first financial-health check
+  wealth: 20,   // first wealth snapshot (discipline of looking)
+  talent: 10,   // adding a talent to the ledger
 } as const;
 
 export type BadgeDef = { id: string; name: string; icon: string; how: string };
@@ -34,4 +40,7 @@ export const BADGES: BadgeDef[] = [
   { id: "risk_aware", name: "Risk Aware", icon: "wisdom", how: "Finish the Understanding Risk track" },
   { id: "judgement", name: "Good Judgement", icon: "trade", how: "Answer every scenario drill well" },
   { id: "sage", name: "Sage", icon: "spark", how: "Reach Level 7" },
+  { id: "scam_spotter", name: "Scam Spotter", icon: "shield", how: "Get every Spot-the-Scam scenario right" },
+  { id: "reflective", name: "Reflective", icon: "book", how: "Complete four weekly reviews" },
+  { id: "builder", name: "Builder", icon: "home", how: "Complete the Wealth Builder journey" },
 ];

@@ -6,12 +6,12 @@ import { I, type IconName } from "../icons";
 import { api, money, monthsTo, fmtYM, Ring, Sheet, Disc, type ToastFn } from "../ui";
 import type { GoalRow } from "@/lib/app-data";
 
-export const GOAL_ICONS: [IconName, string][] = [["home", "Home"], ["plane", "Travel"], ["shield", "Reserve"], ["gift", "Giving"], ["car", "Car"], ["book", "Study"], ["target", "Other"]];
+export const GOAL_ICONS: [IconName, string][] = [["shield", "Emergency fund"], ["home", "First home"], ["briefcase", "Business capital"], ["chart", "Investment portfolio"], ["gift", "Giving"], ["plane", "Travel"], ["car", "Car"], ["book", "Study"], ["target", "Custom"]];
 export const gpct = (g: GoalRow) => Math.min(100, Math.floor((g.savedPence / g.targetPence) * 100));
 
-type Props = { goals: GoalRow[]; setGoals: (g: GoalRow[]) => void; toast: ToastFn; onXp: () => void; openStudy: () => void };
+type Props = { goals: GoalRow[]; setGoals: (g: GoalRow[]) => void; toast: ToastFn; onXp: () => void; openStudy: () => void; embedded?: boolean };
 
-export function StewardTab({ goals, setGoals, toast, onXp, openStudy }: Props) {
+export function StewardTab({ goals, setGoals, toast, onXp, openStudy, embedded }: Props) {
   const [sheet, setSheet] = useState<{ kind: "new" } | { kind: "edit"; g: GoalRow } | { kind: "detail"; id: string } | null>(null);
   const tot = goals.reduce((a, g) => a + g.savedPence, 0), tgt = goals.reduce((a, g) => a + g.targetPence, 0);
   const pct = tgt ? Math.round((tot / tgt) * 100) : 0;
@@ -25,8 +25,8 @@ export function StewardTab({ goals, setGoals, toast, onXp, openStudy }: Props) {
   };
 
   return (<>
-    <div className="pagehdr"><h1>Steward</h1><button className="iconbtn" aria-label="New goal" onClick={() => setSheet({ kind: "new" })}>{I.plus}</button></div>
-    <div className="pad">
+    {!embedded && <div className="pagehdr"><h1>Steward</h1><button className="iconbtn" aria-label="New goal" onClick={() => setSheet({ kind: "new" })}>{I.plus}</button></div>}
+    <div className={embedded ? "" : "pad"}>
       <div className="card xpcard reveal">
         <div className="between">
           <div><div className="ttl">Your goals</div><div className="lvl">{money(tot)}</div><div style={{ fontSize: 12, color: "#c9d3de", marginTop: 2 }}>of {money(tgt)} across {goals.length} goal{goals.length === 1 ? "" : "s"}</div></div>

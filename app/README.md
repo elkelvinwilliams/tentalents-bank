@@ -26,20 +26,23 @@ Production uses `DATABASE_URL` (Neon) where this doesn't apply.
 
 The app *is* the Academy. It begins with the ten assessment questions, shows a readiness profile and a recommended track, then opens the Academy-first Home.
 
-Phone-first shell with five tabs. Learning is gamified; trading never is.
+Phone-first shell with five tabs. Learning is gamified; trading never is. LEARN → PRACTISE → REFLECT → IMPROVE → BUILD → STEWARD.
 
-- **Home** — greeting, learning streak, level/XP card with daily goal, continue learning, top goal
-- **Learn** — Courses (four tracks, lessons, server-scored quizzes, certificates) · Wisdom (Biblical Mysteries, Biblical Wealth) · Glossary
-- **Trade** — demo simulator (device-local, illustrative prices), scenario drills (server-scored, XP once per drill), trading journal (per user; never earns XP)
-- **Steward** — user-entered savings goals with progress, monthly-needed hint, quick top-ups; milestones pay XP; a planning tool that holds no money
-- **Profile** — level, streak, badges, account, billing, certificates, appearance
+- **Home** — greeting, readiness → Passport, continue learning, financial goal + today's learning goal, **Your next step** (one calm recommendation), recommended track, simulator status, Wisdom for today, XP, Build tiles
+- **Learn** — Courses (four tracks, lessons, server-scored quizzes, certificates) · Wisdom (Biblical Mysteries, Biblical Wealth) · **Tools** (10 calculators: inputs → result → *what this means*; demo figures) · **Safety** (9 scam patterns + 5 Spot-the-Scam scenarios, XP once each) · Glossary
+- **Practise** — demo simulator (device-local, illustrative prices), scenario drills (server-scored, XP once per drill), trading journal (per user; never earns XP)
+- **Build** — Goals (typed: emergency fund, first home, business capital, investment portfolio, giving, custom) · **Wealth** overview (assets − liabilities → net worth, snapshot history) · **Health** check (7 areas → "your next priorities", not a grade) · **Journey** (Earn → Manage → Save → Protect → Invest → Build → Give; lessons, tool and scenario per stage) · **Jubilee** debt-freedom planner (snowball/avalanche, payoff date) · **Giving** tracker (percentages only, no XP) · **Talent Ledger**
+- **Profile** — Readiness Passport (6 dimensions, evidence, disclaimers) · Weekly money review (ends in a learning priority) · Cohorts (churches/groups — learning progress only, never money) · membership comparison, badges, account, billing, certificates, appearance
+- **Ten Talents AI** (floating button) — rules-based tutor, three modes (Learn / Reflect / Understand), permanent "Educational only — not financial advice" indicator; refuses buy/sell/what/how-much/prediction questions. A live model can replace `src/lib/ai.ts#answer` behind the same boundary later.
+
+**Real user data vs demo:** goals, wealth snapshots, health checks, weekly reviews, debts, giving, talents and cohorts are per-user Postgres rows (marked "Your data" in the UI). Tools and the simulator are illustrative and marked DEMO.
 
 XP is awarded only by the server (`src/lib/gamify.ts`, `xp_events` unique on user+kind+ref so nothing pays twice):
-lesson complete +40 · module quiz first pass +100 · readiness assessment +60 · goal set +30 · goal update +10 · 25/50/75 % +25 · goal complete +100 · scenario drill +25.
-Badges: First Steps, 7-Day Streak, Quiz Ace, Steward, Risk Aware, Good Judgement, Sage.
+lesson complete +40 · module quiz first pass +100 · readiness assessment +60 · goal set +30 · goal update +10 · 25/50/75 % +25 · goal complete +100 · scenario drill +25 · Spot-the-Scam +25 · journey scenario +25 · weekly review +20 (once per ISO week) · first health check +20 · first wealth snapshot +20 · talent added +10. Nothing pays for trades, deposits, profit, leverage or giving.
+Badges: First Steps, 7-Day Streak, Quiz Ace, Steward, Risk Aware, Good Judgement, Sage, Scam Spotter, Reflective, Builder.
 
-New tables (migration `0001_steward`): `user_stats`, `xp_events`, `goals`, `journal_entries`. Existing Neon databases:
-run `ten-talents-academy-neon-upgrade.sql` (repo root) once. Fresh databases: `ten-talents-academy-neon-setup.sql` includes everything.
+Tables: migration `0001_steward` (`user_stats`, `xp_events`, `goals`, `journal_entries`) and `0002_build` (`wealth_snapshots`, `health_checks`, `weekly_reviews`, `debts`, `giving_entries`, `talents`, `cohorts`, `cohort_members`). Existing Neon databases:
+run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both. Fresh databases: `ten-talents-academy-neon-setup.sql` includes everything.
 
 ## Deploy (Vercel)
 

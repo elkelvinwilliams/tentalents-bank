@@ -9,13 +9,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { I, type IconName } from "./icons";
-import type { TrackMeta, GoalRow, JournalRow } from "@/lib/app-data";
+import type { TrackMeta, GoalRow, JournalRow, BuildSummary } from "@/lib/app-data";
 import { api, money, Ring, XpCard, TrackHero, Sheet, Toasts, useToasts, setTheme, getTheme, Disc, type Stats, type ToastFn } from "./ui";
 import { levelOf, levelTitle, BADGES } from "@/lib/levels";
 import { StewardTab, gpct } from "./screens/Steward";
 import { readiness } from "@/lib/readiness";
 import { TradeTab } from "./screens/Trade";
 import { WisdomList, WisdomStudy } from "./screens/Wisdom";
+import { BuildTab, type BuildSeg, type BuildData } from "./screens/Build";
+import { ToolsList, ToolSheet } from "./screens/Tools";
+import { SafetySection } from "./screens/Safety";
+import { AiSheet } from "./screens/Ai";
+import { PassportView } from "./screens/Passport";
+import { WeeklyReview } from "./screens/Review";
+import { CohortsView } from "./screens/Cohorts";
+import { priorities } from "@/lib/health";
+import { MYSTERIES } from "@/content/wisdom";
 
 const LOGO = <img className="logo" src="/logo-hand-gold.png" alt="" style={{ height: 28, width: "auto" }} />;
 
@@ -34,11 +43,12 @@ const QUESTIONS: [string, string[]][] = [
 ];
 
 const TOUR: [IconName, string, string][] = [
-  ["seed", "Ten Talents Academy", "Learn → Understand → Simulate → then decide. Four tracks, a simulator, a journal, a wisdom library and your own goals — one Academy."],
-  ["learn", "Four tracks, in order", "Money Foundations first. Each track builds on the one before it, so nothing arrives before you're ready for it."],
-  ["star", "Learning is gamified", "XP, levels, streaks and badges — for lessons, quizzes and saving discipline. Never for trading. Trading is not a game."],
+  ["seed", "Ten Talents Academy", "Learn → Practise → Reflect → Improve → Build → Steward. Four tracks, tools, a simulator, a journal, a wisdom library and a place to build — one Academy."],
+  ["learn", "Four tracks, in order", "Money Foundations first. Each track builds on the one before it, so nothing arrives before you're ready for it. Tools, Money Safety and a glossary sit alongside."],
+  ["star", "Learning is gamified", "XP, levels, streaks and badges — for lessons, quizzes, scenarios, reflections and saving discipline. Never for trading. Trading is not a game."],
   ["trade", "Practise before it costs you", "A demo simulator that shows money-at-risk before upside, scenario drills that practise judgement, and a journal that shows you your own behaviour."],
-  ["target", "Steward what you've been given", "Set goals — a house deposit, a reserve, a trip. Your numbers, your account. Ten Talents holds no money and gives no advice."],
+  ["target", "Build what you've been given", "Goals, a wealth overview, a health check, the Wealth Builder journey, the Jubilee debt planner, giving and your Talent Ledger. Your numbers, your account — Ten Talents holds no money."],
+  ["ai", "Ten Talents AI", "Explains concepts, reflects your own patterns back to you and translates jargon. It never says what to buy, sell or how much — that line is the whole point."],
   ["wisdom", "The deeper things", "Biblical Mysteries and Biblical Wealth — the economics of scripture, studied as interpretation, never as prediction."],
   ["shield", "One thing before you start", "This is education, not advice. Nothing here tells you what to buy or sell, and nobody here manages money for you."],
 ];
@@ -59,14 +69,15 @@ export type UserState = {
   email: string; emailVerified: boolean; name: string; stage: string;
   answers: Record<string, number>; done: Record<string, 1>; scores: Record<string, number>;
   certs: { trackId: string; issuedAt: string }[]; ent: Ent; signalsEnabled: boolean;
-  stats: Stats; goals: GoalRow[]; journal: JournalRow[];
+  stats: Stats; goals: GoalRow[]; journal: JournalRow[]; build: BuildSummary;
 };
-type Tab = "home" | "learn" | "trade" | "steward" | "profile";
+type Tab = "home" | "learn" | "trade" | "build" | "profile";
 type View =
   | { kind: "tabs" } | { kind: "track"; t: string }
   | { kind: "lesson"; t: string; l: string }
   | { kind: "quiz"; t: string; quizId: string }
-  | { kind: "study"; n: string };
+  | { kind: "study"; n: string }
+  | { kind: "passport" } | { kind: "review" } | { kind: "cohorts" };
 
 export default function AcademyApp({ content, state }: { content: Content; state: UserState | null }) {
   const [S, setS] = useState<UserState | null>(state);
@@ -78,7 +89,11 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const [qIdx, setQIdx] = useState(() => state ? Object.keys(state.answers).length % 10 : 0);
   const [tourIdx, setTourIdx] = useState(0);
   const [tab, setTab] = useState<Tab>("home");
-  const [learnSeg, setLearnSeg] = useState<"courses" | "wisdom" | "glossary">("courses");
+  const [learnSeg, setLearnSeg] = useState<"courses" | "wisdom" | "tools" | "safety" | "glossary">("courses");
+  const [buildSeg, setBuildSeg] = useState<BuildSeg>("goals");
+  const [buildData, setBuildData] = useState<BuildData | null>(null);
+  const [tool, setTool] = useState<string | null>(null);
+  const [ai, setAi] = useState(false);
   const [wisdomSeg, setWisdomSeg] = useState<"myst" | "wealth">("myst");
   const [view, setView] = useState<View>({ kind: "tabs" });
   const [paywall, setPaywall] = useState(false);
@@ -97,6 +112,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
     if (p.size) window.history.replaceState({}, "", "/");
   }, []);
   useEffect(() => { viewRef.current?.scrollTo({ top: 0 }); }, [tab, view]);
+  useEffect(() => { if (learnSeg === "safety" && !buildData) api("/api/build").then(setBuildData).catch(() => {}); }, [learnSeg, buildData]);
 
   const reload = useCallback(() => { window.location.href = "/"; }, []);
   const refreshStats = useCallback(async () => {
@@ -129,6 +145,24 @@ export default function AcademyApp({ content, state }: { content: Content; state
     if (l.minutes === 0) return;
     if (lessonLocked(l)) return setPaywall(true);
     setView({ kind: "lesson", t, l: l.id });
+  };
+  const openLessonById = (lid: string) => { const hit = allLessons.find(({ l }) => l.id === lid); if (hit) openLesson(hit.t.id, hit.l); };
+  const weakestTrack = () => [...tracks].sort((a, b) => trackProgress(a).pct - trackProgress(b).pct)[0];
+  // "Your next step" — one calm recommendation, derived from what the user has and hasn't done
+  const nextStep = (): { icon: IconName; title: string; why: string; go: () => void } => {
+    if (!S) return { icon: "learn", title: "Start learning", why: "", go: () => go("learn") };
+    const n = nextUp();
+    if (!S.build.health) return { icon: "heart", title: "Take the financial health check", why: "Seven honest answers → your next priorities. Five minutes, no grade.", go: () => { setBuildSeg("health"); go("build"); } };
+    if (!S.goals.length) return { icon: "target", title: "Set your first goal", why: "An emergency fund is the usual first one — three months of essentials.", go: () => { setBuildSeg("goals"); go("build"); } };
+    if (!S.build.reviewedWeek && new Date().getDay() >= 5) return { icon: "compass", title: "Do your weekly review", why: "Four questions, one learning priority. It's the weekend — reflect before the week resets.", go: () => setView({ kind: "review" }) };
+    if (n) return { icon: "learn", title: `Continue: ${n.l.title}`, why: `${n.t.name} · ${n.l.minutes} min · +40 XP`, go: () => openLesson(n.t.id, n.l) };
+    return { icon: "wisdom", title: "Read a Wisdom study", why: "Every lesson is done. The deeper things are next.", go: () => { setTab("learn"); setLearnSeg("wisdom"); } };
+  };
+  const learningPriority = (): { title: string; why: string } => {
+    if (S?.build.health) { const p = priorities(S.build.health)[0]; if (p && p.go === "learn") return { title: p.title, why: p.why }; }
+    const w = weakestTrack(); const p = trackProgress(w);
+    if (p.pct < 100) return { title: `Continue ${w.name}`, why: `Your least-complete track (${p.pct}%). Finishing it in order is the highest-value next lesson.` };
+    return { title: "Read the Wisdom library", why: "All four tracks complete — the studies are where knowledge becomes stewardship." };
   };
 
   /* ================= pre-app screens ================= */
@@ -221,7 +255,8 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const stats = S.stats;
   const firstName = (S.name || S.email.split("@")[0]).split(" ")[0];
   const initial = (firstName[0] || "T").toUpperCase();
-  const tabs: [Tab, string, React.ReactNode][] = [["home", "Home", I.home], ["learn", "Learn", I.learn], ["trade", "Trade", I.trade], ["steward", "Steward", I.target], ["profile", "Profile", I.profile]];
+  const tabs: [Tab, string, React.ReactNode][] = [["home", "Home", I.home], ["learn", "Learn", I.learn], ["trade", "Practise", I.trade], ["build", "Build", I.target], ["profile", "Profile", I.profile]];
+  const aiCtx = { lessonsDone: doneCount, totalLessons: readyLessons.length, streak: stats.streak, xp: stats.xp, journal: S.journal.map((j) => ({ planned: j.planned, pnlPence: j.pnlPence, emotionBefore: j.emotionBefore })), drillsRight: buildData?.scenarios.drill.length ?? 0, goals: S.goals.length, weakTrack: trackProgress(weakestTrack()).pct < 100 ? weakestTrack().name : undefined };
   const go = (t: Tab) => { setTab(t); setView({ kind: "tabs" }); };
 
   let body: React.ReactNode;
@@ -283,19 +318,36 @@ export default function AcademyApp({ content, state }: { content: Content; state
       onScored={(quizId, pct, st) => setS({ ...S, scores: { ...S.scores, [quizId]: Math.max(S.scores[quizId] ?? 0, pct) }, stats: st ?? S.stats })} />;
   } else if (view.kind === "study") {
     body = <WisdomStudy n={view.n} back={() => { setTab("learn"); setLearnSeg("wisdom"); setView({ kind: "tabs" }); }} open={(n) => setView({ kind: "study", n })} />;
+  } else if (view.kind === "passport") {
+    body = <PassportView name={S.name} onBack={() => setView({ kind: "tabs" })} />;
+  } else if (view.kind === "review") {
+    body = <WeeklyReview priority={learningPriority()} onBack={() => setView({ kind: "tabs" })} toast={toast} onXp={refreshStats} onSaved={() => setS({ ...S, build: { ...S.build, reviewedWeek: true } })} />;
+  } else if (view.kind === "cohorts") {
+    body = <CohortsView onBack={() => setView({ kind: "tabs" })} />;
   } else if (tab === "home") {
     const n = nextUp();
     const topGoal = [...S.goals].sort((a, b) => gpct(b) - gpct(a))[0];
     const rd = readiness(S.answers);
     const recTrack = tracks.find((t) => t.id === rd.track) ?? tracks[0];
+    const hour = new Date().getHours();
+    const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    const step = nextStep();
+    let sim: { cash: number; positions: unknown[] } | null = null;
+    try { sim = JSON.parse(localStorage.getItem("tt-sim") || "null"); } catch { /* none */ }
+    const weekXp = Math.min(stats.todayXp, 999);
+    const study = MYSTERIES.filter((m) => m.open)[(new Date().getDate() + doneCount) % Math.max(1, MYSTERIES.filter((m) => m.open).length)] ?? MYSTERIES[0];
     body = (<>
       <header className="hdr">
         <button className="av" onClick={() => go("profile")} aria-label="Profile">{initial}</button>
-        <div className="hi"><div className="g">Ten Talents Academy</div><div className="n">Hi, {firstName}</div></div>
-        <span className="streak" title="Learning streak">{I.flame} {stats.streak}</span>
+        <div className="hi"><div className="g">{greet}</div><div className="n">{firstName}</div></div>
+        <button className="streak" title="Learning streak" onClick={() => go("profile")}>{I.flame} {stats.streak}</button>
       </header>
       <div className="pad">
-        <div className="sec" style={{ marginTop: 6 }}><h2>Continue learning</h2><button className="link" onClick={() => go("learn")}>All courses</button></div>
+        <button className="card coursewide reveal" style={{ marginTop: 6 }} onClick={() => setView({ kind: "passport" })}>
+          <Ring pct={rd.score} size={54} label={String(rd.score)} track="var(--surface-2)" color="var(--ink)" />
+          <span style={{ flex: 1, textAlign: "left" }}><h3>{rd.label}</h3><div className="cmeta"><span>Readiness {rd.score}/100</span><span>Passport</span></div></span>{I.arrow}
+        </button>
+        <div className="sec"><h2>Continue learning</h2><button className="link" onClick={() => go("learn")}>All courses</button></div>
         {n ? (
           <button className="card coursewide reveal" onClick={() => openLesson(n.t.id, n.l)}>
             <span className="th"><TrackHero kind={n.t.id} h={74} /></span>
@@ -305,49 +357,57 @@ export default function AcademyApp({ content, state }: { content: Content; state
         ) : (
           <div className="card"><h3>Every lesson done</h3><p className="muted" style={{ fontSize: 13.5 }}>Your certificates are on the Profile tab.</p></div>
         )}
-        <div className="hscroll" style={{ marginTop: 12 }}>
-          {tracks.map((t, i) => { const p = trackProgress(t); return (
-            <button key={t.id} className="wtile" style={{ width: 150, display: "flex", alignItems: "center", gap: 10, padding: 12 }} onClick={() => setView({ kind: "track", t: t.id })}>
-              <Ring pct={p.pct} size={44} label={`${p.pct}%`} track="var(--surface-2)" color="var(--ink)" />
-              <span style={{ minWidth: 0 }}><span className="s" style={{ fontSize: 12.5, display: "block", lineHeight: 1.2 }}>{t.name}</span><span className="n">{i + 1} of 4 · {p.got}/{p.all}</span></span>
-            </button>
-          ); })}
+        <div className="grid2" style={{ marginTop: 12 }}>
+          <button className="stat" style={{ textAlign: "left" }} onClick={() => { setBuildSeg("goals"); go("build"); }}>
+            <div className="k">Financial goal</div>
+            {topGoal ? <><div className="v" style={{ fontSize: 17 }}>{money(topGoal.savedPence)}</div><div className="cpbar" style={{ marginTop: 6 }}><i style={{ width: `${gpct(topGoal)}%` }} /></div><div className="faint" style={{ fontSize: 11.5, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{topGoal.name} · {gpct(topGoal)}%</div></> : <><div className="v" style={{ fontSize: 17 }}>—</div><div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>Set your first · +30 XP</div></>}
+          </button>
+          <div className="stat">
+            <div className="k">Today&rsquo;s learning goal</div>
+            <div className="row" style={{ gap: 10, marginTop: 4 }}><Ring pct={(stats.todayXp / 50) * 100} size={40} label={`${weekXp}`} track="var(--surface-2)" color="var(--ink)" /><div><div className="mono" style={{ fontSize: 15 }}>{weekXp}/50</div><div className="faint" style={{ fontSize: 11.5 }}>XP today</div></div></div>
+          </div>
         </div>
+        <div className="sec"><h2>Your next step</h2></div>
+        <button className="nextstep reveal" onClick={step.go}>
+          <span className="ic">{I[step.icon]}</span>
+          <span style={{ flex: 1, minWidth: 0 }}><h3>{step.title}</h3><p>{step.why}</p></span>
+          <span style={{ color: "#edb671" }}>{I.arrow}</span>
+        </button>
         <div className="sec"><h2>Recommended for you</h2><span className="faint" style={{ fontSize: 12 }}>from your answers</span></div>
         <button className="card card-gold reveal" style={{ width: "100%", textAlign: "left" }} onClick={() => setView({ kind: "track", t: recTrack.id })}>
           <div className="between"><span className="eyebrow">{rd.label} · readiness {rd.score}</span>{I.arrow}</div>
           <h3 style={{ fontSize: 16, margin: "8px 0 4px" }}>{recTrack.name}</h3>
           <p className="muted" style={{ fontSize: 13.5 }}>{rd.reason}</p>
         </button>
+        <div className="grid2" style={{ marginTop: 12 }}>
+          <button className="stat" style={{ textAlign: "left" }} onClick={() => go("trade")}>
+            <div className="k">Simulator · demo</div>
+            <div className="v" style={{ fontSize: 17 }}>{sim ? `${sim.positions.length} open` : "Not started"}</div>
+            <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{S.journal.length} journal entr{S.journal.length === 1 ? "y" : "ies"}</div>
+          </button>
+          <button className="stat" style={{ textAlign: "left" }} onClick={() => setView({ kind: "study", n: study.n })}>
+            <div className="k">Wisdom · today</div>
+            <div style={{ fontFamily: "var(--display)", fontWeight: 700, fontSize: 14, marginTop: 4, lineHeight: 1.25 }}>{study.title}</div>
+            <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{study.open ? "Study " + study.n : "Coming soon"}</div>
+          </button>
+        </div>
         <div style={{ height: 14 }} />
-        <XpCard stats={stats} />
-        <div className="sec"><h2>Steward</h2><button className="link" onClick={() => go("steward")}>{S.goals.length ? "All goals" : "Open"}</button></div>
-        {topGoal ? (
-          <button className="card coursewide reveal" onClick={() => go("steward")}>
-            <span className="th" style={{ background: "var(--gold-tint)", color: "var(--gold)" }}>{I[topGoal.icon as IconName]}</span>
-            <span style={{ flex: 1, textAlign: "left" }}><h3>{topGoal.name}</h3><div className="cmeta"><span className="mono">{money(topGoal.savedPence)} / {money(topGoal.targetPence)}</span><span>{gpct(topGoal)}%</span></div><div className="cpbar"><i style={{ width: `${gpct(topGoal)}%` }} /></div></span>
-            {I.arrow}
-          </button>
-        ) : (
-          <button className="card card-gold" style={{ width: "100%", textAlign: "left" }} onClick={() => go("steward")}>
-            <div className="eyebrow">Your goals</div><h3 style={{ fontSize: 16, margin: "8px 0 4px" }}>Set your first goal</h3>
-            <p className="muted" style={{ fontSize: 13.5 }}>A house deposit, a reserve, a trip — your numbers, your account. +30 XP.</p>
-          </button>
-        )}
-        <div className="sec"><h2>Your snapshot</h2></div>
-        <div className="grid2">
-          <div className="stat"><div className="k">Lessons</div><div className="v">{doneCount}<span className="faint" style={{ fontSize: 13 }}>/{totalLessons}</span></div></div>
-          <div className="stat"><div className="k">Readiness</div><div className="v">{rd.score}<span className="faint" style={{ fontSize: 13 }}>/100</span></div></div>
+        <XpCard stats={stats} compact />
+        <div className="sec"><h2>Build</h2><button className="link" onClick={() => go("build")}>Open</button></div>
+        <div className="tiles">
+          {([["wealth", "Wealth", "wallet", S.build.netWorthPence !== null ? money(S.build.netWorthPence) : "Snapshot"], ["health", "Health", "heart", S.build.health ? "Checked" : "Check"], ["journey", "Journey", "compass", "7 stages"], ["jubilee", "Jubilee", "refresh", S.build.debts ? `${S.build.debts} debt${S.build.debts === 1 ? "" : "s"}` : "Plan"], ["giving", "Giving", "hand", S.build.givingMonths ? `${S.build.givingMonths} mo` : "Record"], ["talents", "Talents", "ledger", S.build.talents ? `${S.build.talents}` : "Ledger"]] as [BuildSeg, string, IconName, string][]).map(([k, label, ic, sub]) => (
+            <button key={k} className="tile" onClick={() => { setBuildSeg(k); go("build"); }}><span className="ic">{I[ic]}</span>{label}<span className="faint mono" style={{ fontSize: 11, fontWeight: 600 }}>{sub}</span></button>
+          ))}
         </div>
         {!member && (
-          <div className="card card-gold reveal" style={{ marginTop: 12 }}>
+          <div className="card card-gold reveal" style={{ marginTop: 14 }}>
             <div className="eyebrow">Membership</div>
             <h3 style={{ fontSize: 16, margin: "8px 0 4px" }}>Unlock the full Academy</h3>
             <p className="muted" style={{ fontSize: 13.5 }}>All four tracks, every quiz and your certificates. £15.99 a month, cancel any time.</p>
             <button className="btn btn-sm" style={{ marginTop: 12 }} onClick={() => setPaywall(true)}>See membership {I.arrow}</button>
           </div>
         )}
-        <Disc>Ten Talents is an education app. Nothing here is financial advice or an inducement to trade.</Disc>
+        <Disc>Ten Talents is an education app. Nothing here is financial advice or an inducement to trade. Your figures are yours; Ten Talents holds no money.</Disc>
       </div>
     </>);
   } else if (tab === "learn") {
@@ -357,7 +417,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
       <div className="pagehdr"><h1>Learn</h1></div>
       <div className="pad">
         <div className="hscroll" style={{ marginBottom: 10 }}>
-          {([["courses", "Courses"], ["wisdom", "Wisdom"], ["glossary", "Glossary"]] as const).map(([k, label]) => <button key={k} className={`chip ${learnSeg === k ? "on" : ""}`} onClick={() => setLearnSeg(k)}>{k === "wisdom" ? I.wisdom : null}{label}</button>)}
+          {([["courses", "Courses"], ["wisdom", "Wisdom"], ["tools", "Tools"], ["safety", "Safety"], ["glossary", "Glossary"]] as const).map(([k, label]) => <button key={k} className={`chip ${learnSeg === k ? "on" : ""}`} onClick={() => setLearnSeg(k)}>{k === "wisdom" ? I.wisdom : k === "tools" ? I.calc : k === "safety" ? I.shield : null}{label}</button>)}
         </div>
         {learnSeg === "courses" && (<>
           <div className="sec" style={{ marginTop: 14 }}><h2>Four tracks</h2><span className="faint" style={{ fontSize: 13 }}>in order</span></div>
@@ -370,6 +430,8 @@ export default function AcademyApp({ content, state }: { content: Content; state
           ); })}
         </>)}
         {learnSeg === "wisdom" && <div style={{ marginTop: 6 }}><WisdomList seg={wisdomSeg} setSeg={setWisdomSeg} open={(n) => setView({ kind: "study", n })} /></div>}
+        {learnSeg === "tools" && <ToolsList open={setTool} />}
+        {learnSeg === "safety" && <SafetySection done={buildData?.scenarios.safety ?? []} toast={toast} onXp={refreshStats} onDone={(id) => buildData && setBuildData({ ...buildData, scenarios: { ...buildData.scenarios, safety: [...buildData.scenarios.safety, id] } })} />}
         {learnSeg === "glossary" && (<>
           <input className="search" style={{ margin: "6px 0 4px" }} placeholder="Search terms" value={gq} onChange={e => setGq(e.target.value)} aria-label="Search terms" />
           <div className="card" style={{ padding: "4px 16px", marginTop: 12 }}>{list.length ? list.map(([t, d]) => <div className="term" key={t}><b>{t}</b><p>{d}</p></div>) : <div className="term"><p>No term matches that. Try a shorter word.</p></div>}</div>
@@ -378,11 +440,15 @@ export default function AcademyApp({ content, state }: { content: Content; state
     </>);
   } else if (tab === "trade") {
     body = <TradeTab journal={S.journal} setJournal={(j) => setS({ ...S, journal: j })} toast={toast} onXp={refreshStats} />;
-  } else if (tab === "steward") {
-    body = <StewardTab goals={S.goals} setGoals={(g) => setS({ ...S, goals: g })} toast={toast} onXp={refreshStats} openStudy={() => setView({ kind: "study", n: "01" })} />;
+  } else if (tab === "build") {
+    body = <BuildTab seg={buildSeg} setSeg={setBuildSeg} goals={S.goals} setGoals={(g) => setS({ ...S, goals: g })} done={S.done} toast={toast} onXp={refreshStats}
+      openStudy={(n) => setView({ kind: "study", n })} openLesson={openLessonById} openTool={setTool} goLearn={() => go("learn")}
+      data={buildData} setData={setBuildData}
+      onHealthSaved={(a) => setS({ ...S, build: { ...S.build, health: a } })} onWealthSaved={(nw) => setS({ ...S, build: { ...S.build, netWorthPence: nw, wealthTakenAt: new Date().toISOString() } })} />;
   } else {
     body = <Profile S={S} setS={setS} tracks={tracks} trackProgress={trackProgress} doneCount={doneCount} totalLessons={totalLessons} openPaywall={() => setPaywall(true)} initial={initial}
-      onRetake={() => { setS({ ...S, answers: {} }); setQIdx(0); api("/api/state", { stage: "onboard", answers: {} }).catch(() => {}); setScreen("onboard"); }} />;
+      onRetake={() => { setS({ ...S, answers: {} }); setQIdx(0); api("/api/state", { stage: "onboard", answers: {} }).catch(() => {}); setScreen("onboard"); }}
+      openView={(v) => setView(v)} />;
   }
 
   const deep = view.kind !== "tabs";
@@ -394,8 +460,11 @@ export default function AcademyApp({ content, state }: { content: Content; state
       <nav className="tabbar">{tabs.map(([k, label, ic]) => (
         <button key={k} className={`tab ${tab === k && (!deep || view.kind === "study" && k === "learn") ? "on" : ""}`} onClick={() => go(k)}><span className="ti">{ic}</span>{label}</button>
       ))}</nav>
+      {view.kind === "tabs" && !ai && !tool && <button className="fab" onClick={() => setAi(true)} aria-label="Ask Ten Talents AI">{I.ai}</button>}
       <Toasts items={toasts} />
       {paywall && <Paywall S={S} onClose={() => setPaywall(false)} />}
+      {tool && <ToolSheet id={tool} onClose={() => setTool(null)} />}
+      {ai && <AiSheet ctx={aiCtx} onClose={() => setAi(false)} onOpenTool={(id) => { setAi(false); setTool(id); }} />}
     </div>
   );
 }
@@ -621,10 +690,11 @@ function Paywall({ S, onClose }: { S: UserState; onClose: () => void }) {
 }
 
 /* ---------- profile / account ---------- */
-function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial, onRetake }: {
+function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial, onRetake, openView }: {
   S: UserState; setS: (s: UserState) => void; tracks: TrackMeta[];
   trackProgress: (t: TrackMeta) => { got: number; all: number; pct: number };
   doneCount: number; totalLessons: number; openPaywall: () => void; initial: string; onRetake: () => void;
+  openView: (v: View) => void;
 }) {
   const certs = tracks.filter(t => trackProgress(t).pct === 100);
   const [busy, setBusy] = useState<string | null>(null);
@@ -670,9 +740,22 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
           </div>
         </div>
       ); })()}
+      <div className="sec"><h2>Your record</h2></div>
+      <div className="card" style={{ padding: "4px 14px" }}>
+        <button className="lrow" onClick={() => openView({ kind: "passport" })}><span className="lplay">{I.passport}</span><span style={{ flex: 1 }}><b>Readiness Passport</b><span className="d">Six dimensions, built from what you do here · educational profile</span></span>{I.arrow}</button>
+        <button className="lrow" onClick={() => openView({ kind: "review" })}><span className={`lplay ${S.build.reviewedWeek ? "done" : ""}`}>{S.build.reviewedWeek ? I.check : I.compass}</span><span style={{ flex: 1 }}><b>Weekly money review</b><span className="d">{S.build.reviewedWeek ? "Done this week — ends in a learning priority" : "Five minutes, four questions · +20 XP"}</span></span>{I.arrow}</button>
+        <button className="lrow" onClick={() => openView({ kind: "cohorts" })}><span className="lplay">{I.users}</span><span style={{ flex: 1 }}><b>Cohorts</b><span className="d">Learn with your church, group or workplace · progress only</span></span>{I.arrow}</button>
+      </div>
       <div className="sec"><h2>Badges</h2><span className="faint" style={{ fontSize: 13 }}>{earned.size}/{BADGES.length}</span></div>
       <div className="hscroll">{BADGES.map(b => <div key={b.id} className={`badge ${earned.has(b.id) ? "" : "locked"}`} title={b.how}><span className="bic">{earned.has(b.id) ? I[b.icon as IconName] : I.lock}</span><span>{b.name}</span></div>)}</div>
 
+      <div className="sec"><h2>Membership</h2><span className={`pill ${ent.member ? "g" : "o"}`}>{ent.member ? "Member" : "Free"}</span></div>
+      <div className="card" style={{ padding: "4px 16px" }}>
+        {([["Money Foundations · first lesson", true, true], ["All four tracks", false, true], ["Module quizzes and certificates", false, true], ["Tools, Money Safety, glossary", true, true], ["Build: goals, wealth, health, journey, Jubilee, giving, talents", true, true], ["Ten Talents AI (rules-based)", true, true], ["Weekly review and Readiness Passport", true, true], ["Cohorts", true, true]] as [string, boolean, boolean][]).map(([f, free, mem]) => (
+          <div key={f} className="kv" style={{ fontSize: 13.5 }}><span style={{ flex: 1 }}>{f}</span><span className="row" style={{ gap: 18 }}><span className={free ? "pos" : "faint"} style={{ width: 34, textAlign: "center" }}>{free ? I.check : "—"}</span><span className={mem ? "pos" : "faint"} style={{ width: 34, textAlign: "center" }}>{mem ? I.check : "—"}</span></span></div>
+        ))}
+        <div className="kv" style={{ fontSize: 11, color: "var(--faint)", borderTop: "1px solid var(--line)" }}><span style={{ flex: 1 }} /><span className="row" style={{ gap: 18 }}><span style={{ width: 34, textAlign: "center" }}>Free</span><span style={{ width: 34, textAlign: "center" }}>£15.99</span></span></div>
+      </div>
       <div className="sec"><h2>Your account</h2></div>
       <div className="card" style={{ padding: "4px 16px" }}>
         <div className="kv"><span>Signed in as</span><b className="dim">{S.email}{S.emailVerified ? "" : " · unverified"}</b></div>

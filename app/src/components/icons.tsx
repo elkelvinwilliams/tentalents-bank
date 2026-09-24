@@ -32,6 +32,16 @@ const D = {
   moon: "M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z",
   trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
   edit: "M4 20h4l10-10-4-4L4 16z M13 7l4 4",
+  briefcase: "M3 8h18v12H3z M8 8V5h8v3 M3 13h18",
+  calc: "M5 3h14v18H5z M8 7h8 M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01",
+  heart: "M12 20s-7-4.4-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.6-7 10-7 10z",
+  users: "M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7z M2 20c0-3.3 3-5.5 7-5.5s7 2.2 7 5.5 M16 4.5a3 3 0 010 6 M22 19c0-2.6-1.8-4.4-4.5-5",
+  passport: "M5 3h14v18H5z M12 12m-3 0a3 3 0 106 0 3 3 0 10-6 0 M8 18h8",
+  hand: "M7 12V6a1.5 1.5 0 013 0v5 M10 11V4.5a1.5 1.5 0 013 0V11 M13 11V6a1.5 1.5 0 013 0v7 M16 13a1.5 1.5 0 013 0v3a6 6 0 01-6 6h-2a6 6 0 01-5-2.7L3.5 15a1.5 1.5 0 012.5-1.6L7 15",
+  compass: "M12 12m-9 0a9 9 0 1018 0 9 9 0 10-18 0 M15.5 8.5l-2 5-5 2 2-5z",
+  refresh: "M20 12a8 8 0 01-14.5 4.6 M4 12A8 8 0 0118.5 7.4 M18.5 3v4.4H14 M5.5 21v-4.4H10",
+  ledger: "M6 3h12v18H6z M9 7h6M9 11h6M9 15h4",
+  wallet: "M3 7h18v12H3z M3 7l2-3h14l2 3 M15 13h3",
 };
 
 export const I = {
@@ -41,6 +51,7 @@ export const I = {
   plane: svg(s(D.plane)), gift: svg(s(D.gift)), car: svg(s(D.car)), shield: svg(s(D.shield)), book: svg(s(D.book)),
   plus: svg(s(D.plus)), scale: svg(s(D.scale)), alert: svg(s(D.alert)), cap: svg(s(D.cap)), chart: svg(s(D.chart)),
   seed: svg(s(D.seed, false, 34)), bell: svg(s(D.bell)), sun: svg(s(D.sun)), moon: svg(s(D.moon)), trash: svg(s(D.trash, false, 18)), edit: svg(s(D.edit, false, 18)),
+  briefcase: svg(s(D.briefcase)), calc: svg(s(D.calc)), heart: svg(s(D.heart)), users: svg(s(D.users)), passport: svg(s(D.passport)), hand: svg(s(D.hand)), compass: svg(s(D.compass)), refresh: svg(s(D.refresh)), ledger: svg(s(D.ledger)), wallet: svg(s(D.wallet)),
   user: svg(s("M12 8.5a3.4 3.4 0 100-6.8 3.4 3.4 0 000 6.8z M5 20c0-3.7 3.1-5.6 7-5.6s7 1.9 7 5.6", true)),
   profile: svg(s("M12 8.5a3.4 3.4 0 100-6.8 3.4 3.4 0 000 6.8z M5 20c0-3.7 3.1-5.6 7-5.6s7 1.9 7 5.6", true)),
   play: svg(s("M8 5v14l11-7z", true, 15)),
