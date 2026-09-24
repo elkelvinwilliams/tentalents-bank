@@ -122,3 +122,36 @@
   var yr = document.getElementById('year');
   if (yr) yr.textContent = new Date().getFullYear();
 })();
+
+/* ---- v2 motion: word-by-word headlines + card tilt ---- */
+(function () {
+  'use strict';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-words]').forEach(function (el) {
+    if (reduce) { el.classList.add('in-view'); return; }
+    var html = '', i = 0;
+    el.childNodes.forEach(function (node) {
+      if (node.nodeType === 3) {
+        node.textContent.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { html += part; return; }
+          html += '<span class="w" style="transition-delay:' + (i++ * 70) + 'ms">' + part + '</span>';
+        });
+      } else if (node.nodeType === 1) {
+        html += '<span class="w" style="transition-delay:' + (i++ * 70) + 'ms">' + node.outerHTML + '</span>';
+      }
+    });
+    el.innerHTML = html; el.classList.add('words');
+    requestAnimationFrame(function () { setTimeout(function () { el.classList.add('in-view'); }, 120); });
+  });
+  if (!reduce && window.matchMedia('(pointer:fine)').matches) {
+    document.querySelectorAll('.tilt').forEach(function (card) {
+      card.addEventListener('mousemove', function (e) {
+        var r = card.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.setProperty('--ry', (x * 6) + 'deg'); card.style.setProperty('--rx', (-y * 6) + 'deg');
+      });
+      card.addEventListener('mouseleave', function () { card.style.setProperty('--ry', '0deg'); card.style.setProperty('--rx', '0deg'); });
+    });
+  }
+})();
