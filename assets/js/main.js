@@ -155,3 +155,9 @@
     });
   }
 })();
+
+/* ---- Academy links follow TT_APP_URL (assets/js/config.js) ---- */
+(function () {
+  var url = window.TT_APP_URL; if (!url) return;
+  document.querySelectorAll('a[data-app]').forEach(function (a) { a.setAttribute('href', url); if (/^https?:/.test(url)) a.setAttribute('rel', 'noopener'); });
+})();

@@ -24,13 +24,13 @@ export type Stats = { xp: number; streak: number; todayXp: number; badges: strin
 export type Toast = { id: number; xp: number; label: string };
 export type ToastFn = (xp: number, label: string) => void;
 
-export function Ring({ pct, size = 64, label, track = "rgba(255,255,255,.18)" }: { pct: number; size?: number; label: string; track?: string }) {
+export function Ring({ pct, size = 64, label, track = "rgba(255,255,255,.18)", color = "#fff" }: { pct: number; size?: number; label: string; track?: string; color?: string }) {
   const r = size / 2 - 6, c = 2 * Math.PI * r;
   return (
     <svg className="goalring" width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth="5" />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#edb671" strokeWidth="5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, Math.max(0, pct)) / 100)} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: "stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)" }} />
-      <text x="50%" y="53%" textAnchor="middle" fontSize={size * 0.26} fontFamily="var(--mono)" fill="#fff" fontWeight="600" dominantBaseline="middle">{label}</text>
+      <text x="50%" y="53%" textAnchor="middle" fontSize={size * 0.26} fontFamily="var(--mono)" fill={color} fontWeight="600" dominantBaseline="middle">{label}</text>
     </svg>
   );
 }
