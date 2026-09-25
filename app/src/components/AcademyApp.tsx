@@ -358,8 +358,6 @@ export default function AcademyApp({ content, state }: { content: Content; state
     const hour = new Date().getHours();
     const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
     const step = nextStep();
-    let sim: { cash: number; positions: unknown[] } | null = null;
-    try { sim = JSON.parse(localStorage.getItem("tt-sim") || "null"); } catch { /* none */ }
     const weekXp = Math.min(stats.todayXp, 999);
     const study = MYSTERIES.filter((m) => m.open)[(new Date().getDate() + doneCount) % Math.max(1, MYSTERIES.filter((m) => m.open).length)] ?? MYSTERIES[0];
     body = (<>
@@ -407,9 +405,9 @@ export default function AcademyApp({ content, state }: { content: Content; state
         </button>
         <div className="grid2" style={{ marginTop: 12 }}>
           <button className="stat" style={{ textAlign: "left" }} onClick={() => go("trade")}>
-            <div className="k">Simulator · demo</div>
-            <div className="v" style={{ fontSize: 17 }}>{sim ? `${sim.positions.length} open` : "Not started"}</div>
-            <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{S.journal.length} journal entr{S.journal.length === 1 ? "y" : "ies"}</div>
+            <div className="k">Practice · demo</div>
+            <div className="v" style={{ fontSize: 17 }}>{S.build.simCashPence == null ? "£100k virtual" : `${S.build.simOpen} open`}</div>
+            <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{S.build.simCashPence == null ? "Start practising" : `Cash ${money(S.build.simCashPence)} · ${S.journal.length} journal entr${S.journal.length === 1 ? "y" : "ies"}`}</div>
           </button>
           <button className="stat" style={{ textAlign: "left" }} onClick={() => setView({ kind: "study", n: study.n })}>
             <div className="k">Wisdom · today</div>
