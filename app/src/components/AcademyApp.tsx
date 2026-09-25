@@ -94,6 +94,8 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const [tourIdx, setTourIdx] = useState(0);
   const [tab, setTab] = useState<Tab>("home");
   const [learnSeg, setLearnSeg] = useState<"courses" | "wisdom" | "tools" | "safety" | "glossary">("courses");
+  const [learnSort, setLearnSort] = useState<"order" | "progress">("order");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [buildSeg, setBuildSeg] = useState<BuildSeg>("goals");
   const [buildData, setBuildData] = useState<BuildData | null>(null);
   const [tool, setTool] = useState<string | null>(null);
@@ -293,7 +295,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
     const first = t.modules[0]?.lessons[0];
     body = (<>
       <div style={{ position: "relative" }}>
-        <div className="art-hero"><Art kind={TRACK_ART[t.id] ?? "t1"} h={230} /></div>
+        <div className="art-hero"><Art kind={TRACK_ART[t.id] ?? "t1"} h={230} flat /></div>
         <button className="iconbtn" style={{ position: "absolute", top: "calc(14px + env(safe-area-inset-top,0px))", left: 16, background: "rgba(255,255,255,.9)", color: "#06182e" }} onClick={() => go("learn")} aria-label="Back">{I.back}</button>
       </div>
       <div className="pad" style={{ marginTop: -30, position: "relative" }}>
@@ -439,20 +441,34 @@ export default function AcademyApp({ content, state }: { content: Content; state
     const q = gq.toLowerCase();
     const list = content.glossary.filter(([t, d]) => !q || t.toLowerCase().includes(q) || d.toLowerCase().includes(q));
     body = (<>
-      <div className="pagehdr"><h1>Learn</h1></div>
+      <div className="pagehdr"><div style={{ flex: 1 }}><h1>Learn</h1><div className="tag">Grow your knowledge. Build your future.</div></div><button className="iconbtn" aria-label="Search" onClick={() => { haptic("light"); setSearchOpen(true); }}>{I.search}</button></div>
       <div className="pad">
         <div className="hscroll" style={{ marginBottom: 10 }}>
-          {([["courses", "Courses"], ["wisdom", "Wisdom"], ["tools", "Tools"], ["safety", "Safety"], ["glossary", "Glossary"]] as const).map(([k, label]) => <button key={k} className={`chip ${learnSeg === k ? "on" : ""}`} onClick={() => setLearnSeg(k)}>{k === "wisdom" ? I.wisdom : k === "tools" ? I.calc : k === "safety" ? I.shield : null}{label}</button>)}
+          {([["courses", "Courses", I.cap], ["wisdom", "Wisdom", I.wisdom], ["tools", "Tools", I.calc], ["safety", "Safety", I.shield], ["glossary", "Glossary", I.az]] as const).map(([k, label, ic]) => <button key={k} className={`chip ${learnSeg === k ? "on" : ""}`} onClick={() => { haptic("selection"); setLearnSeg(k); }}>{ic}{label}</button>)}
         </div>
         {learnSeg === "courses" && (<>
-          <div className="sec" style={{ marginTop: 14 }}><h2>Four tracks</h2><span className="faint" style={{ fontSize: 13 }}>in order</span></div>
-          {tracks.map((t, i) => { const p = trackProgress(t); const mins = t.modules.reduce((a, m) => a + m.lessons.reduce((b, l) => b + l.minutes, 0), 0); return (
-            <button key={t.id} className="card coursewide reveal" style={{ marginBottom: 12 }} onClick={() => setView({ kind: "track", t: t.id })}>
-              <span className="th"><Art kind={TRACK_ART[t.id] ?? "t1"} w={74} h={74} /></span>
-              <span style={{ flex: 1, textAlign: "left" }}><h3>{t.name}</h3><div className="cmeta"><span>{p.all} lessons</span>{mins ? <span>{mins} min</span> : null}<span>{i === 1 && !member ? "First lesson free" : p.got ? `${p.pct}% done` : "Start"}</span></div><div className="cpbar"><i style={{ width: `${p.pct}%` }} /></div></span>
-              {!member && i !== 1 ? I.lock : I.arrow}
-            </button>
-          ); })}
+          <div className="sec" style={{ marginTop: 14 }}><h2>Four tracks</h2><button className="sortbtn" onClick={() => setLearnSort(learnSort === "order" ? "progress" : "order")}>{learnSort === "order" ? "In order" : "By progress"} {I.sort}</button></div>
+          {[...tracks].map((t, i) => ({ t, i, p: trackProgress(t) })).sort((a, b) => (learnSort === "progress" ? b.p.pct - a.p.pct : 0)).map(({ t, i, p }) => {
+            const mins = t.modules.reduce((a, m) => a + m.lessons.reduce((b, l) => b + l.minutes, 0), 0);
+            const locked = !member && i !== 1;
+            return (
+              <button key={t.id} className="card tcard reveal" onClick={() => setView({ kind: "track", t: t.id })}>
+                <span className="tile"><Art kind={TRACK_ART[t.id] ?? "t1"} w={96} h={96} flat /></span>
+                <span className="body">
+                  <span className="tpill">Track {i + 1}</span>
+                  <h3>{t.name}</h3>
+                  <p>{t.blurb}</p>
+                  <span className="meta">
+                    <span className="it">{I.book}{p.all} lessons</span>
+                    {mins ? <span className="it">{I.clock}{mins} min</span> : null}
+                    {p.got ? <span className="it">{I.bars}{p.pct}% done</span> : i === 1 && !member ? <span className="pl pill o">{I.gift}First lesson free</span> : <span className="it">{I.bars}Start</span>}
+                  </span>
+                  <span className="cpbar"><i style={{ width: `${p.pct}%` }} /></span>
+                </span>
+                <span className="end">{locked ? I.lock : I.arrow}</span>
+              </button>
+            );
+          })}
         </>)}
         {learnSeg === "wisdom" && <div style={{ marginTop: 6 }}><WisdomList seg={wisdomSeg} setSeg={setWisdomSeg} open={(n) => setView({ kind: "study", n })} /></div>}
         {learnSeg === "tools" && <ToolsList open={setTool} />}
@@ -498,6 +514,9 @@ export default function AcademyApp({ content, state }: { content: Content; state
       <Toasts items={toasts} />
       {paywall && <Paywall S={S} native={native} onClose={() => setPaywall(false)} />}
       {tool && <ToolSheet id={tool} onClose={() => setTool(null)} />}
+      {searchOpen && <SearchSheet tracks={tracks} glossary={content.glossary} done={S.done} onClose={() => setSearchOpen(false)}
+        onLesson={(t, l) => { setSearchOpen(false); openLesson(t, l); }} onTrack={(t) => { setSearchOpen(false); setView({ kind: "track", t }); }}
+        onStudy={(n) => { setSearchOpen(false); setView({ kind: "study", n }); }} onTerm={(term) => { setSearchOpen(false); setLearnSeg("glossary"); setGq(term); }} />}
       {ai && <AiSheet ctx={aiCtx} onClose={() => setAi(false)} onOpenTool={(id) => { setAi(false); setTool(id); }} />}
     </div>
   );
@@ -694,6 +713,33 @@ function Quiz({ quizId, toast, onExit, onScored }: { quizId: string; toast: Toas
       </>)}
     </div>
   </>);
+}
+
+/* ---------- search: lessons, tracks, glossary, wisdom ---------- */
+function SearchSheet({ tracks, glossary, done, onClose, onLesson, onTrack, onStudy, onTerm }: {
+  tracks: TrackMeta[]; glossary: [string, string][]; done: Record<string, 1>; onClose: () => void;
+  onLesson: (t: string, l: { id: string; isFreePreview: boolean; minutes: number }) => void; onTrack: (t: string) => void; onStudy: (n: string) => void; onTerm: (term: string) => void;
+}) {
+  const [q, setQ] = useState("");
+  const s = q.trim().toLowerCase();
+  const lessons = s ? tracks.flatMap((t) => t.modules.flatMap((m) => m.lessons.filter((l) => l.title.toLowerCase().includes(s)).map((l) => ({ t, m, l })))).slice(0, 8) : [];
+  const trackHits = s ? tracks.filter((t) => t.name.toLowerCase().includes(s) || t.blurb.toLowerCase().includes(s)).slice(0, 4) : [];
+  const terms = s ? glossary.filter(([t, d]) => t.toLowerCase().includes(s) || d.toLowerCase().includes(s)).slice(0, 6) : [];
+  const studies = s ? MYSTERIES.filter((m) => m.title.toLowerCase().includes(s) || m.blurb.toLowerCase().includes(s)).slice(0, 4) : [];
+  const none = s && !lessons.length && !trackHits.length && !terms.length && !studies.length;
+  return (
+    <Sheet onClose={onClose} tall>
+      <div className="row" style={{ gap: 8 }}><input className="search" autoFocus placeholder="Search lessons, terms, studies" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" /><button className="iconbtn" onClick={onClose} aria-label="Close">{I.close}</button></div>
+      <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+        {!s && <p className="muted" style={{ fontSize: 13.5, padding: "8px 2px" }}>Try “leverage”, “spread”, “Joseph” or “inflation”.</p>}
+        {trackHits.map((t) => <button key={t.id} className="srow" onClick={() => onTrack(t.id)}><span className="k">Track</span><span style={{ flex: 1 }}><b>{t.name}</b><span className="d">{t.blurb}</span></span>{I.arrow}</button>)}
+        {lessons.map(({ t, m, l }) => <button key={l.id} className="srow" onClick={() => onLesson(t.id, l)} aria-disabled={l.minutes === 0}><span className="k">Lesson</span><span style={{ flex: 1 }}><b>{l.title}</b><span className="d">{t.name} · {m.name}{l.minutes ? ` · ${l.minutes} min` : " · coming soon"}{done[l.id] ? " · done" : ""}</span></span>{l.minutes ? I.arrow : I.lock}</button>)}
+        {terms.map(([t, d]) => <button key={t} className="srow" onClick={() => onTerm(t)}><span className="k">Term</span><span style={{ flex: 1 }}><b>{t}</b><span className="d">{d}</span></span>{I.arrow}</button>)}
+        {studies.map((m) => <button key={m.n} className="srow" onClick={() => onStudy(m.n)}><span className="k">Wisdom</span><span style={{ flex: 1 }}><b>{m.title}</b><span className="d">{m.blurb}</span></span>{m.open ? I.arrow : I.lock}</button>)}
+        {none && <p className="muted" style={{ fontSize: 13.5, padding: "8px 2px" }}>Nothing matches that yet. Try a shorter word.</p>}
+      </div>
+    </Sheet>
+  );
 }
 
 /* ---------- paywall (Stripe checkout behind it) ---------- */

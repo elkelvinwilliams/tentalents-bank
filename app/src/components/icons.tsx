@@ -42,6 +42,9 @@ const D = {
   refresh: "M20 12a8 8 0 01-14.5 4.6 M4 12A8 8 0 0118.5 7.4 M18.5 3v4.4H14 M5.5 21v-4.4H10",
   ledger: "M6 3h12v18H6z M9 7h6M9 11h6M9 15h4",
   wallet: "M3 7h18v12H3z M3 7l2-3h14l2 3 M15 13h3",
+  clock: "M12 12m-9 0a9 9 0 1018 0 9 9 0 10-18 0 M12 7v5l3.5 2",
+  sort: "M8 9l4-4 4 4 M8 15l4 4 4-4",
+  bars: "M5 19V12M10 19V6M15 19v-9M20 19V4",
 };
 
 export const I = {
@@ -51,6 +54,7 @@ export const I = {
   plane: svg(s(D.plane)), gift: svg(s(D.gift)), car: svg(s(D.car)), shield: svg(s(D.shield)), book: svg(s(D.book)),
   plus: svg(s(D.plus)), scale: svg(s(D.scale)), alert: svg(s(D.alert)), cap: svg(s(D.cap)), chart: svg(s(D.chart)),
   seed: svg(s(D.seed, false, 34)), bell: svg(s(D.bell)), sun: svg(s(D.sun)), moon: svg(s(D.moon)), trash: svg(s(D.trash, false, 18)), edit: svg(s(D.edit, false, 18)),
+  clock: svg(s(D.clock, false, 16)), sort: svg(s(D.sort, false, 18)), bars: svg(s(D.bars, false, 16)),
   briefcase: svg(s(D.briefcase)), calc: svg(s(D.calc)), heart: svg(s(D.heart)), users: svg(s(D.users)), passport: svg(s(D.passport)), hand: svg(s(D.hand)), compass: svg(s(D.compass)), refresh: svg(s(D.refresh)), ledger: svg(s(D.ledger)), wallet: svg(s(D.wallet)),
   user: svg(s("M12 8.5a3.4 3.4 0 100-6.8 3.4 3.4 0 000 6.8z M5 20c0-3.7 3.1-5.6 7-5.6s7 1.9 7 5.6", true)),
   profile: svg(s("M12 8.5a3.4 3.4 0 100-6.8 3.4 3.4 0 000 6.8z M5 20c0-3.7 3.1-5.6 7-5.6s7 1.9 7 5.6", true)),

@@ -158,8 +158,32 @@ function motif(kind: ArtKind, id: string): ReactNode {
   }
 }
 
+/* Flat variant: one bold gold line-icon on the navy gradient — cleaner at tile sizes. */
+function flatMotif(kind: ArtKind, id: string): ReactNode | null {
+  const S = { stroke: GOLD, strokeWidth: 3.2, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, filter: `url(#${id}g)` };
+  switch (kind) {
+    case "t1": return (<g {...S}>
+      <ellipse cx="60" cy="72" rx="24" ry="8" />
+      <path d="M36 72v10c0 4.4 10.7 8 24 8s24-3.6 24-8V72" /><path d="M36 82v10c0 4.4 10.7 8 24 8s24-3.6 24-8V82" />
+      <circle cx="90" cy="44" r="17" /><text x="90" y="51" textAnchor="middle" fontSize="19" fontFamily="Georgia,serif" fill={GOLD} stroke="none">£</text>
+    </g>);
+    case "t2": case "practise": return (<g {...S}>
+      {[[40, 44, 100, 60, 84], [62, 34, 88, 44, 72], [84, 52, 106, 62, 92], [106, 30, 78, 38, 62]].map(([x, top, bot, bt, bb]) => (<g key={x}><line x1={x} y1={top} x2={x} y2={bot} /><rect x={x - 8} y={bt} width="16" height={bb - bt} rx="2" /></g>))}
+    </g>);
+    case "t3": case "safety": return (<g {...S}>
+      <path d="M70 22 L106 36 V64 C106 90 88 106 70 114 C52 106 34 90 34 64 V36 Z" />
+      <path d="M70 52v22" strokeWidth="4" /><circle cx="70" cy="86" r="2.6" fill={GOLD} stroke="none" />
+    </g>);
+    case "t4": return (<g {...S}>
+      {[[38, 84], [56, 72], [74, 62], [92, 50]].map(([x, y]) => <rect key={x} x={x - 6} y={y} width="12" height={110 - y} rx="2" />)}
+      <path d="M32 58 C48 50 62 44 80 30 L104 26" /><path d="M92 24l12 2-2 12" />
+    </g>);
+    default: return null;
+  }
+}
+
 /** Full-bleed artwork. Fills its box; the motif stays centred (viewBox 140×132, slice). */
-export function Art({ kind, h = 74, w = "100%", label, className, style }: { kind: ArtKind; h?: number | string; w?: number | string; label?: string; className?: string; style?: React.CSSProperties }) {
+export function Art({ kind, h = 74, w = "100%", label, className, style, flat }: { kind: ArtKind; h?: number | string; w?: number | string; label?: string; className?: string; style?: React.CSSProperties; flat?: boolean }) {
   const id = "a" + useId().replace(/[:]/g, "");
   return (
     <svg className={className} style={style} width={w} height={h} viewBox="0 0 140 132" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -174,8 +198,8 @@ export function Art({ kind, h = 74, w = "100%", label, className, style }: { kin
       </defs>
       <rect width="140" height="132" fill={`url(#${id}bg)`} />
       <rect width="140" height="132" fill={`url(#${id}r)`} />
-      <g opacity=".5" stroke={PALE} strokeWidth=".5" fill="none"><circle cx="70" cy="66" r="58" opacity=".18" /><circle cx="70" cy="66" r="50" opacity=".12" strokeDasharray="1 4" /></g>
-      {motif(kind, id)}
+      {!flat && <g opacity=".5" stroke={PALE} strokeWidth=".5" fill="none"><circle cx="70" cy="66" r="58" opacity=".18" /><circle cx="70" cy="66" r="50" opacity=".12" strokeDasharray="1 4" /></g>}
+      {(flat && flatMotif(kind, id)) || motif(kind, id)}
       {label && <text x="70" y="74" textAnchor="middle" fontSize="30" fontFamily="var(--serif),Georgia,serif" fill={PALE} style={{ paintOrder: "stroke" }} stroke="#06182e" strokeWidth="4">{label}</text>}
       <rect width="140" height="132" filter={`url(#${id}n)`} opacity=".9" />
       <rect width="140" height="132" fill={`url(#${id}v)`} />
