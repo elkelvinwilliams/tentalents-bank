@@ -48,9 +48,11 @@ run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both
 
 1. Vercel project → root directory `app/`. Add env vars from `.env.example`
    (DATABASE_URL from Neon, ADMIN_PASSWORD, APP_URL, Stripe keys, Resend,
-   Blob token).
-2. Run migrations/seed once against Neon:
-   `DATABASE_URL=... npm run db:setup`
+   Blob token). Only DATABASE_URL and ADMIN_PASSWORD are needed for a first deploy.
+2. Migrations and content seed run automatically during the Vercel build
+   (`vercel-build` → `scripts/vercel-build.mjs`) whenever DATABASE_URL is set.
+   Manual alternative: `DATABASE_URL=... npm run db:setup`, or run
+   `ten-talents-academy-neon-setup.sql` in the Neon SQL editor.
 3. Stripe (test mode first):
    - Product **Academy Membership**, recurring price **£15.99/month GBP** → `STRIPE_PRICE_MEMBERSHIP`
    - Product **Signals Access**, recurring price **£4.99/month GBP** → `STRIPE_PRICE_SIGNALS`
