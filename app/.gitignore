@@ -43,3 +43,6 @@ next-env.d.ts
 # local dev
 .pglite/
 public/uploads/
+
+# generated store screenshots
+store/
