@@ -396,3 +396,14 @@ button,.chip,.tab,.opt,.btn{-webkit-tap-highlight-color:transparent;-webkit-user
 .coursewide .th svg{display:block}
 .art-hero{position:relative}
 .art-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(180deg,transparent,rgba(2,25,58,.55))}
+
+/* ---------- practise: markets, charts, tickets ---------- */
+.mrow{width:100%;text-align:left;gap:12px;align-items:center}
+.mrow .mk{width:50px;flex:none;display:flex;flex-direction:column;align-items:flex-start}
+.mrow .mk b{font-family:var(--display);font-weight:800;font-size:12.5px;letter-spacing:-.01em;display:block;color:var(--ink)}
+.mrow .mk span{font-size:10px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.range{display:block;position:relative;height:4px;border-radius:99px;background:var(--line-2);margin:6px 0 4px;max-width:180px}
+.range i{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%);box-shadow:0 0 0 2px var(--surface)}
+.pricebig{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.chart{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.chart canvas{border-radius:14px}

@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, timestamp, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, doublePrecision, text, integer, boolean, timestamp, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 /* ============================================================
    Ten Talents Academy — schema
@@ -249,6 +249,51 @@ export const cohortMembers = pgTable("cohort_members", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("cohort_member_uq").on(t.cohortId, t.userId), index("cohort_member_user_idx").on(t.userId)]);
+
+/* ---------- market data cache + practice portfolio (virtual money only) ---------- */
+
+export const marketCache = pgTable("market_cache", {
+  key: text("key").primaryKey(),
+  payload: jsonb("payload").$type<unknown>().notNull(),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const simAccounts = pgTable("sim_accounts", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  cashPence: integer("cash_pence").notNull().default(10000000),
+  startPence: integer("start_pence").notNull().default(10000000),
+  resets: integer("resets").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const simOrders = pgTable("sim_orders", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  symbol: text("symbol").notNull(),
+  side: text("side").notNull(),                 // buy | sell
+  type: text("type").notNull().default("market"), // market | limit | stop
+  qty: doublePrecision("qty").notNull(),
+  limitPrice: doublePrecision("limit_price"),
+  stopLoss: doublePrecision("stop_loss"),
+  takeProfit: doublePrecision("take_profit"),
+  status: text("status").notNull().default("open"), // pending | open | closed | cancelled
+  entryPrice: doublePrecision("entry_price"),
+  exitPrice: doublePrecision("exit_price"),
+  pnlPence: integer("pnl_pence"),
+  reason: text("reason").notNull().default(""),
+  exitReason: text("exit_reason").notNull().default(""),
+  openedAt: timestamp("opened_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("sim_orders_user_idx").on(t.userId)]);
+
+export const simEquity = pgTable("sim_equity", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  equityPence: integer("equity_pence").notNull(),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("sim_equity_user_idx").on(t.userId)]);
 
 export const webhookEvents = pgTable("webhook_events", {
   id: text("id").primaryKey(), // Stripe event id — idempotency
