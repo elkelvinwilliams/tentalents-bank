@@ -7,6 +7,8 @@ import { api, Disc, type ToastFn } from "../ui";
 import { SAFETY_TOPICS, SCAM_SCENARIOS } from "@/content/safety";
 import type { Drill } from "@/content/drills";
 import { BADGES } from "@/lib/levels";
+import { ArtBadge } from "../art";
+import { haptic } from "@/lib/native";
 
 export function badgeName(id: string) { return BADGES.find((b) => b.id === id)?.name ?? id; }
 
@@ -25,7 +27,7 @@ export function Scenario({ d, set, done, toast, onXp, onDone }: { d: Drill; set:
             if (pick) return; setBusy(true);
             try {
               const r = await api("/api/scenarios", { set, id: d.id, choice: n });
-              setPick({ n, best: r.best, bestIndex: r.bestIndex, why: r.why });
+              setPick({ n, best: r.best, bestIndex: r.bestIndex, why: r.why }); haptic(r.best ? "success" : "light");
               if (r.xp) { toast(r.xp, set === "safety" ? "Scam spotted" : "Good judgement"); onXp(); }
               r.badges?.forEach((b: string) => setTimeout(() => toast(0, `Badge unlocked · ${badgeName(b)}`), 900));
               if (r.best) onDone?.(d.id);
@@ -47,7 +49,7 @@ export function SafetySection({ done, toast, onXp, onDone }: { done: string[]; t
   const got = SCAM_SCENARIOS.filter((s) => done.includes(s.id)).length;
   return (<>
     <div className="card xpcard reveal" style={{ marginTop: 14 }}>
-      <div className="between"><div><div className="ttl">Money Safety</div><div className="lvl">{got}/{SCAM_SCENARIOS.length} spotted</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>Every scam has a pattern. Learn it once and it stops working on you.</div></div><span style={{ color: "#edb671" }}>{I.shield}</span></div>
+      <div className="between"><div><div className="ttl">Money Safety</div><div className="lvl">{got}/{SCAM_SCENARIOS.length} spotted</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>Every scam has a pattern. Learn it once and it stops working on you.</div></div><ArtBadge kind="safety" size={60} /></div>
       <div className="xpbar"><i style={{ width: `${(got / SCAM_SCENARIOS.length) * 100}%` }} /></div>
       <div className="xpmeta"><span>Ten Talents never asks you to send money to invest.</span><span>Scam Spotter badge at 5/5</span></div>
     </div>

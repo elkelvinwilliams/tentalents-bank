@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { I, type IconName } from "../icons";
 import { api, money, Ring, Sheet, Disc, type ToastFn } from "../ui";
 import { StewardTab } from "./Steward";
+import { ArtBadge } from "../art";
 import { Scenario, badgeName } from "./Safety";
 import type { GoalRow } from "@/lib/app-data";
 import type { WealthAssets, WealthLiabilities } from "@/db/schema";
@@ -261,7 +262,7 @@ function GivingTracker({ entries, setEntries, openStudy }: { entries: Giving[]; 
   return (<>
     <div className="between" style={{ margin: "14px 0 10px" }}><h2 style={{ fontSize: 19 }}>Giving</h2>{REAL}</div>
     <div className="card xpcard reveal">
-      <div className="between"><div><div className="ttl">Decided in advance, like a saving rate</div><div className="lvl">{entries.length ? `${avg}%` : "—"}</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>{entries.length ? `Average across ${entries.length} month${entries.length === 1 ? "" : "s"} · percentages only, never amounts` : "Record the share of income you gave each month. No amounts — a habit, not a ledger."}</div></div><span style={{ color: "#edb671" }}>{I.hand}</span></div>
+      <div className="between"><div><div className="ttl">Decided in advance, like a saving rate</div><div className="lvl">{entries.length ? `${avg}%` : "—"}</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>{entries.length ? `Average across ${entries.length} month${entries.length === 1 ? "" : "s"} · percentages only, never amounts` : "Record the share of income you gave each month. No amounts — a habit, not a ledger."}</div></div><ArtBadge kind="giving" size={60} /></div>
       {last.length > 1 && <div className="bars" style={{ marginTop: 14 }} aria-label="Giving by month">{last.map((e) => <i key={e.id} style={{ height: `${Math.max(4, (e.pct / Math.max(10, ...last.map((x) => x.pct))) * 100)}%` }} title={`${fmtM(e.month)} · ${e.pct}%`} />)}</div>}
     </div>
     <div className="card" style={{ marginTop: 12 }}>
@@ -288,7 +289,7 @@ function TalentLedger({ talents, setTalents, flash, openStudy }: { talents: Tale
   return (<>
     <div className="between" style={{ margin: "14px 0 10px" }}><h2 style={{ fontSize: 19 }}>Talent Ledger</h2>{REAL}</div>
     <div className="card xpcard reveal">
-      <div className="between"><div><div className="ttl">What you&rsquo;ve been given</div><div className="lvl">{talents.length} talent{talents.length === 1 ? "" : "s"}</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>Skills, knowledge, habits and relationships — the capital that isn&rsquo;t money. Name it, rate it honestly, develop it.</div></div><span style={{ color: "#edb671" }}>{I.ledger}</span></div>
+      <div className="between"><div><div className="ttl">What you&rsquo;ve been given</div><div className="lvl">{talents.length} talent{talents.length === 1 ? "" : "s"}</div><div style={{ fontSize: 12.5, color: "#c9d3de", marginTop: 2 }}>Skills, knowledge, habits and relationships — the capital that isn&rsquo;t money. Name it, rate it honestly, develop it.</div></div><ArtBadge kind="talents" size={60} /></div>
     </div>
     <div className="sec"><h2>Ledger</h2><button className="link" onClick={() => setEdit({ category: "skill", level: 1 })}>+ Add · 10 XP</button></div>
     {talents.length ? <div className="card" style={{ padding: "4px 14px" }}>{talents.map((t) => (

@@ -3,6 +3,7 @@
 import { I } from "../icons";
 import { Disc } from "../ui";
 import { MYSTERIES, WEALTH_PRINCIPLES } from "@/content/wisdom";
+import { Art } from "../art";
 
 export function WisdomList({ seg, setSeg, open }: { seg: "myst" | "wealth"; setSeg: (s: "myst" | "wealth") => void; open: (n: string) => void }) {
   return (<>
@@ -14,7 +15,7 @@ export function WisdomList({ seg, setSeg, open }: { seg: "myst" | "wealth"; setS
       <p className="muted" style={{ fontSize: 14, marginBottom: 14 }}>The lesser-discussed economics of scripture — preparation, debt, ownership, power. Curious, never sensational. Interpretations shown as interpretations.</p>
       {MYSTERIES.map((m) => (
         <button key={m.n} className="card coursewide reveal" style={{ marginBottom: 11, opacity: m.open ? 1 : 0.6 }} onClick={() => open(m.n)}>
-          <span className="th" style={{ background: "var(--xp-grad)", color: "var(--gold-bright)", fontFamily: "var(--serif)", fontSize: 26 }}>{m.n}</span>
+          <span className="th"><Art kind="wisdom" w={74} h={74} label={m.n} /></span>
           <span style={{ flex: 1, textAlign: "left" }}><h3 style={{ fontSize: 15 }}>{m.title}</h3><p className="faint" style={{ fontSize: 12.5, marginTop: 4 }}>{m.blurb}</p></span>
           {m.open ? I.arrow : I.lock}
         </button>

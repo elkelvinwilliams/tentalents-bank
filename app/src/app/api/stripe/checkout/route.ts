@@ -7,6 +7,7 @@ import { appUrl } from "@/lib/email";
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (/TenTalentsApp/.test(req.headers.get("user-agent") ?? "")) return NextResponse.json({ error: "Membership is managed on the website." }, { status: 403 });
   const { addon } = await req.json().catch(() => ({}));
   const ent = await getEntitlement(user.id);
   if (ent.member) return NextResponse.json({ error: "You already have an active membership — manage it from your profile." }, { status: 400 });

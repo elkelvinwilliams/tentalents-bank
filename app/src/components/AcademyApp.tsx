@@ -7,10 +7,14 @@
    authoritative; learning XP is awarded only by the server.
    ============================================================ */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { I, type IconName } from "./icons";
 import type { TrackMeta, GoalRow, JournalRow, BuildSummary } from "@/lib/app-data";
-import { api, money, Ring, XpCard, TrackHero, Sheet, Toasts, useToasts, setTheme, getTheme, Disc, type Stats, type ToastFn } from "./ui";
+import { api, money, Ring, XpCard, Sheet, Toasts, useToasts, setTheme, getTheme, Disc, type Stats, type ToastFn } from "./ui";
+import { Art, TRACK_ART } from "./art";
+import { isNativeApp, haptic, share } from "@/lib/native";
+import { useGestures } from "./gestures";
+import { InstallCard } from "./Pwa";
 import { levelOf, levelTitle, BADGES } from "@/lib/levels";
 import { StewardTab, gpct } from "./screens/Steward";
 import { readiness } from "@/lib/readiness";
@@ -102,6 +106,14 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const [flash, setFlash] = useState<string | null>(null);
   const [toasts, toast] = useToasts();
   const viewRef = useRef<HTMLDivElement>(null);
+  const ptrRef = useRef<HTMLDivElement>(null);
+  const depthRef = useRef(0);
+  const native = useSyncExternalStore(() => () => {}, isNativeApp, () => false);
+  const [installX, setInstallX] = useState(false);
+  const installHidden = useSyncExternalStore(() => () => {}, () => { try { return localStorage.getItem("tt-install-x") === "1"; } catch { return false; } }, () => true) || installX;
+  const gest = useRef<{ onRefresh: () => Promise<void>; onBack: () => void; canBack: () => boolean }>({ onRefresh: async () => {}, onBack: () => {}, canBack: () => false });
+  const [gestureOpts] = useState(() => ({ onRefresh: () => gest.current.onRefresh(), onBack: () => gest.current.onBack(), canBack: () => gest.current.canBack() }));
+  useGestures(viewRef, ptrRef, gestureOpts, screen === "app");
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -118,6 +130,20 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const refreshStats = useCallback(async () => {
     try { const st = await api("/api/stats"); setS((s) => (s ? { ...s, stats: st } : s)); } catch { /* keep local */ }
   }, []);
+  const go = (t: Tab) => { haptic("selection"); setTab(t); setView({ kind: "tabs" }); };
+  const back = () => {
+    if (view.kind === "lesson" || view.kind === "quiz") setView({ kind: "track", t: view.t });
+    else if (view.kind === "track") go("learn");
+    else if (view.kind === "study") { setTab("learn"); setLearnSeg("wisdom"); setView({ kind: "tabs" }); }
+    else setView({ kind: "tabs" });
+  };
+  useEffect(() => {
+    gest.current = {
+      onRefresh: async () => { await Promise.all([refreshStats(), buildData ? api("/api/build").then(setBuildData).catch(() => {}) : Promise.resolve()]); },
+      onBack: back,
+      canBack: () => view.kind !== "tabs",
+    };
+  });
 
   /* ---------- derived ---------- */
   const tracks = content.tracks;
@@ -257,7 +283,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
   const initial = (firstName[0] || "T").toUpperCase();
   const tabs: [Tab, string, React.ReactNode][] = [["home", "Home", I.home], ["learn", "Learn", I.learn], ["trade", "Practise", I.trade], ["build", "Build", I.target], ["profile", "Profile", I.profile]];
   const aiCtx = { lessonsDone: doneCount, totalLessons: readyLessons.length, streak: stats.streak, xp: stats.xp, journal: S.journal.map((j) => ({ planned: j.planned, pnlPence: j.pnlPence, emotionBefore: j.emotionBefore })), drillsRight: buildData?.scenarios.drill.length ?? 0, goals: S.goals.length, weakTrack: trackProgress(weakestTrack()).pct < 100 ? weakestTrack().name : undefined };
-  const go = (t: Tab) => { setTab(t); setView({ kind: "tabs" }); };
+
 
   let body: React.ReactNode;
 
@@ -267,7 +293,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
     const first = t.modules[0]?.lessons[0];
     body = (<>
       <div style={{ position: "relative" }}>
-        <TrackHero kind={t.id} h={210} />
+        <div className="art-hero"><Art kind={TRACK_ART[t.id] ?? "t1"} h={230} /></div>
         <button className="iconbtn" style={{ position: "absolute", top: "calc(14px + env(safe-area-inset-top,0px))", left: 16, background: "rgba(255,255,255,.9)", color: "#06182e" }} onClick={() => go("learn")} aria-label="Back">{I.back}</button>
       </div>
       <div className="pad" style={{ marginTop: -30, position: "relative" }}>
@@ -350,7 +376,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
         <div className="sec"><h2>Continue learning</h2><button className="link" onClick={() => go("learn")}>All courses</button></div>
         {n ? (
           <button className="card coursewide reveal" onClick={() => openLesson(n.t.id, n.l)}>
-            <span className="th"><TrackHero kind={n.t.id} h={74} /></span>
+            <span className="th"><Art kind={TRACK_ART[n.t.id] ?? "t1"} w={74} h={74} /></span>
             <span style={{ flex: 1, textAlign: "left" }}><h3>{n.l.title}</h3><div className="cmeta"><span>{n.t.name}</span><span>{n.l.minutes ? `${n.l.minutes} min` : "Coming soon"}</span><span>{trackProgress(n.t).pct}% done</span></div><div className="cpbar"><i style={{ width: `${trackProgress(n.t).pct}%` }} /></div></span>
             {I.arrow}
           </button>
@@ -399,7 +425,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
             <button key={k} className="tile" onClick={() => { setBuildSeg(k); go("build"); }}><span className="ic">{I[ic]}</span>{label}<span className="faint mono" style={{ fontSize: 11, fontWeight: 600 }}>{sub}</span></button>
           ))}
         </div>
-        {!member && (
+        {!member && !native && (
           <div className="card card-gold reveal" style={{ marginTop: 14 }}>
             <div className="eyebrow">Membership</div>
             <h3 style={{ fontSize: 16, margin: "8px 0 4px" }}>Unlock the full Academy</h3>
@@ -407,6 +433,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
             <button className="btn btn-sm" style={{ marginTop: 12 }} onClick={() => setPaywall(true)}>See membership {I.arrow}</button>
           </div>
         )}
+        {!installHidden && <InstallCard compact onDismiss={() => { try { localStorage.setItem("tt-install-x", "1"); } catch { /* ignore */ } setInstallX(true); }} />}
         <Disc>Ten Talents is an education app. Nothing here is financial advice or an inducement to trade. Your figures are yours; Ten Talents holds no money.</Disc>
       </div>
     </>);
@@ -423,7 +450,7 @@ export default function AcademyApp({ content, state }: { content: Content; state
           <div className="sec" style={{ marginTop: 14 }}><h2>Four tracks</h2><span className="faint" style={{ fontSize: 13 }}>in order</span></div>
           {tracks.map((t, i) => { const p = trackProgress(t); const mins = t.modules.reduce((a, m) => a + m.lessons.reduce((b, l) => b + l.minutes, 0), 0); return (
             <button key={t.id} className="card coursewide reveal" style={{ marginBottom: 12 }} onClick={() => setView({ kind: "track", t: t.id })}>
-              <span className="th"><TrackHero kind={t.id} h={74} /></span>
+              <span className="th"><Art kind={TRACK_ART[t.id] ?? "t1"} w={74} h={74} /></span>
               <span style={{ flex: 1, textAlign: "left" }}><h3>{t.name}</h3><div className="cmeta"><span>{p.all} lessons</span>{mins ? <span>{mins} min</span> : null}<span>{i === 1 && !member ? "First lesson free" : p.got ? `${p.pct}% done` : "Start"}</span></div><div className="cpbar"><i style={{ width: `${p.pct}%` }} /></div></span>
               {!member && i !== 1 ? I.lock : I.arrow}
             </button>
@@ -448,21 +475,30 @@ export default function AcademyApp({ content, state }: { content: Content; state
   } else {
     body = <Profile S={S} setS={setS} tracks={tracks} trackProgress={trackProgress} doneCount={doneCount} totalLessons={totalLessons} openPaywall={() => setPaywall(true)} initial={initial}
       onRetake={() => { setS({ ...S, answers: {} }); setQIdx(0); api("/api/state", { stage: "onboard", answers: {} }).catch(() => {}); setScreen("onboard"); }}
-      openView={(v) => setView(v)} />;
+      openView={(v) => setView(v)} native={native} />;
   }
 
   const deep = view.kind !== "tabs";
+  const depth = view.kind === "tabs" ? 0 : view.kind === "lesson" || view.kind === "quiz" ? 2 : 1;
+  const screenKey = `${tab}|${view.kind}|${"t" in view ? view.t : ""}|${"l" in view ? view.l : ""}|${"quizId" in view ? view.quizId : ""}|${"n" in view ? view.n : ""}`;
+  // screen transition: decided once per mounted screen (ref callback), never during render
+  const screenRef = (el: HTMLDivElement | null) => {
+    if (!el || el.dataset.anim) return;
+    const prev = depthRef.current; depthRef.current = depth;
+    el.dataset.anim = "1"; el.classList.add(depth > prev ? "screen-in" : depth < prev ? "screen-back" : "screen-fade");
+  };
   return (
     <div className="shell">
       {S.ent.grace && <div className="grace" role="status">Your last payment didn&rsquo;t go through. Update your card on the Profile tab to keep your access — nothing you&rsquo;ve done is lost.</div>}
       {flash && <div className="grace good" role="status">{flash}</div>}
-      <div className="view" ref={viewRef}>{body}{view.kind === "tabs" ? FOOT : null}</div>
+      <div className="ptr" ref={ptrRef} aria-hidden="true">{I.refresh}</div>
+      <div className="view" ref={viewRef}><div key={screenKey} ref={screenRef}>{body}{view.kind === "tabs" ? FOOT : null}</div></div>
       <nav className="tabbar">{tabs.map(([k, label, ic]) => (
         <button key={k} className={`tab ${tab === k && (!deep || view.kind === "study" && k === "learn") ? "on" : ""}`} onClick={() => go(k)}><span className="ti">{ic}</span>{label}</button>
       ))}</nav>
       {view.kind === "tabs" && !ai && !tool && <button className="fab" onClick={() => setAi(true)} aria-label="Ask Ten Talents AI">{I.ai}</button>}
       <Toasts items={toasts} />
-      {paywall && <Paywall S={S} onClose={() => setPaywall(false)} />}
+      {paywall && <Paywall S={S} native={native} onClose={() => setPaywall(false)} />}
       {tool && <ToolSheet id={tool} onClose={() => setTool(null)} />}
       {ai && <AiSheet ctx={aiCtx} onClose={() => setAi(false)} onOpenTool={(id) => { setAi(false); setTool(id); }} />}
     </div>
@@ -478,7 +514,7 @@ function Gate({ consent, setConsent, onContinue }: { consent: boolean; setConsen
       <div className="gate-head">
         <img className="logo" src="/logo-hand-gold.png" alt="" />
         <span className="wordmark">Ten Talents</span>
-        <div className="sub">Academy · Markets · Wealth · Wisdom</div>
+        <div className="sub">Academy · Wealth · Wisdom</div>
       </div>
       <div className="verse"><div className="dots3">•••</div>
         <p>He who had received the <b>five</b> talents went at once and traded with them, and he made <b>five talents <i>more</i></b>.</p>
@@ -663,7 +699,7 @@ function Quiz({ quizId, toast, onExit, onScored }: { quizId: string; toast: Toas
 }
 
 /* ---------- paywall (Stripe checkout behind it) ---------- */
-function Paywall({ S, onClose }: { S: UserState; onClose: () => void }) {
+function Paywall({ S, native, onClose }: { S: UserState; native: boolean; onClose: () => void }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const buy = async (addon: boolean) => {
@@ -675,6 +711,12 @@ function Paywall({ S, onClose }: { S: UserState; onClose: () => void }) {
     <Sheet onClose={onClose}>
       <div className="between"><h2 style={{ fontSize: 20 }}>Ten Talents Academy</h2><button className="iconbtn" onClick={onClose} aria-label="Close">{I.close}</button></div>
       <p className="muted" style={{ marginTop: 8 }}>The first lesson is free. Membership opens the rest.</p>
+      {native && (<>
+        <div className="plan"><div><b>Membership</b><p>All four tracks, every quiz, your certificates.</p></div><span className="price">£15.99<small style={{ color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 12 }}>/mo</small></span></div>
+        <div className="disc" style={{ marginTop: 16 }}>Membership is managed on the Ten Talents website, not in this app. Sign in there with the same email and your access appears here.</div>
+        <button className="btn btn-ghost" style={{ marginTop: 14 }} onClick={onClose}>Close</button>
+      </>)}
+      {!native && (<>
       <div className="plan"><div><b>Membership</b><p>All four tracks, every quiz, your certificates.</p></div><span className="price">£15.99<small style={{ color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 12 }}>/mo</small></span></div>
       {S.signalsEnabled && (
         <div className="plan"><div><b>Signals access</b><p>Members only. Educational commentary, not advice.</p></div><span className="price">£4.99<small style={{ color: "var(--muted)", fontFamily: "var(--sans)", fontSize: 12 }}>/mo</small></span></div>
@@ -685,16 +727,17 @@ function Paywall({ S, onClose }: { S: UserState; onClose: () => void }) {
       {S.signalsEnabled && <button className="btn btn-ghost" style={{ marginTop: 10 }} aria-busy={busy === "both"} onClick={() => buy(true)}>Membership and signals</button>}
       <button className="btn btn-ghost" style={{ marginTop: 10, border: 0, color: "var(--muted)" }} onClick={onClose}>Not now</button>
       <p className="demo-note">Secure payment by Stripe. Cancel any time from your profile — access runs to the end of the period you&rsquo;ve paid for.</p>
+      </>)}
     </Sheet>
   );
 }
 
 /* ---------- profile / account ---------- */
-function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial, onRetake, openView }: {
+function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, openPaywall, initial, onRetake, openView, native }: {
   S: UserState; setS: (s: UserState) => void; tracks: TrackMeta[];
   trackProgress: (t: TrackMeta) => { got: number; all: number; pct: number };
   doneCount: number; totalLessons: number; openPaywall: () => void; initial: string; onRetake: () => void;
-  openView: (v: View) => void;
+  openView: (v: View) => void; native: boolean;
 }) {
   const certs = tracks.filter(t => trackProgress(t).pct === 100);
   const [busy, setBusy] = useState<string | null>(null);
@@ -735,7 +778,7 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
             <button className="btn btn-ghost btn-sm" onClick={onRetake}>Retake assessment</button>
             <button className="btn btn-ghost btn-sm" onClick={async () => {
               const url = window.location.origin + "/?ref=friend"; const text = "Learn how money and markets actually work with me on Ten Talents Academy — first lesson free.";
-              try { if (navigator.share) await navigator.share({ title: "Ten Talents Academy", text, url }); else { await navigator.clipboard.writeText(text + " " + url); alert("Invite copied — paste it anywhere."); } } catch { /* cancelled */ }
+              const r = await share(text, url); if (r === "copied") alert("Invite copied — paste it anywhere.");
             }}>Invite a friend</button>
           </div>
         </div>
@@ -773,12 +816,16 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
         }} />
       </div>
       {err && <div className="err" role="alert" style={{ marginBottom: 12 }}>{err}</div>}
-      {ent.member ? (<>
+      {ent.member && native ? (
+        <div className="disc">Your membership is active. Billing is managed on the Ten Talents website.</div>
+      ) : ent.member ? (<>
         <button className="btn btn-ghost" aria-busy={busy === "portal"} onClick={() => act("/api/stripe/portal", {}, "portal")}>Update card · manage billing</button>
         {S.signalsEnabled && !ent.signals && <button className="btn" style={{ marginTop: 10 }} aria-busy={busy === "addon"} onClick={() => act("/api/stripe/addon", { action: "add" }, "addon")}>Add signals access · £4.99/mo</button>}
         {ent.signals && <button className="btn btn-ghost" style={{ marginTop: 10 }} aria-busy={busy === "addon"} onClick={() => act("/api/stripe/addon", { action: "remove" }, "addon")}>Remove signals access</button>}
         {!ent.cancelAtPeriodEnd && <button className="btn btn-ghost" style={{ marginTop: 10 }} aria-busy={busy === "cancel"} onClick={() => { if (window.confirm("Cancel your membership? You keep access until the end of the period you've paid for, and everything you've done is saved.")) act("/api/stripe/cancel", {}, "cancel"); }}>Cancel membership</button>}
-      </>) : (
+      </>) : native ? (
+        <div className="disc">Membership is managed on the Ten Talents website, not in this app. Sign in there with the same email and your access appears here.</div>
+      ) : (
         <button className="btn" onClick={openPaywall}>See membership</button>
       )}
       {ent.signals && (
@@ -799,6 +846,7 @@ function Profile({ S, setS, tracks, trackProgress, doneCount, totalLessons, open
         </div>
       )) : <div className="card"><h3>Nothing yet</h3><p className="muted" style={{ fontSize: 13.5 }}>Finish every lesson in a track and its certificate appears here.</p></div>}
 
+      {!native && (<><div className="sec"><h2>Get the app</h2></div><InstallCard /></>)}
       <div className="sec"><h2>Settings</h2></div>
       <div className="card">
         <div className="between" style={{ padding: "4px 0" }}><span>Appearance</span><div className="row" style={{ gap: 6 }}>{(["light", "dark", "system"] as const).map(m => <button key={m} className={`chip ${theme === m ? "on" : ""}`} style={{ padding: "7px 12px" }} onClick={() => { setTheme(m); setThemeState(m); }}>{m === "system" ? "Auto" : m[0].toUpperCase() + m.slice(1)}</button>)}</div></div>
