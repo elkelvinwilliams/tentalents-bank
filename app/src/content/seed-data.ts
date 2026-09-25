@@ -128,7 +128,7 @@ export type SeedTrack = { id: string; name: string; blurb: string; modules: Seed
 export const TRACKS: SeedTrack[] = [
   {
     id: "t1", name: "Money Foundations",
-    blurb: "Income, spending, saving, debt, compounding, inflation. The machinery underneath everything else.",
+    blurb: "Build a strong financial mindset and understand how money works.",
     modules: [
       { id: "m1", name: "Where money goes", lessons: [{ id: "l1", title: "Income, spending and the gap between them", mins: 0 }, { id: "l2", title: "Why saving is a rate, not an amount", mins: 0 }], quiz: null },
       { id: "m2", name: "Debt", lessons: [{ id: "l1", title: "Good debt, bad debt and the honest test", mins: 0 }, { id: "l2", title: "What interest costs over time", mins: 0 }], quiz: null },
@@ -137,7 +137,7 @@ export const TRACKS: SeedTrack[] = [
   },
   {
     id: "t2", name: "How Markets Work",
-    blurb: "What is actually being bought and sold, who the players are, and why prices move.",
+    blurb: "Learn the structure, participants and behaviour of global financial markets.",
     modules: [
       { id: "m1", name: "How a price is made", lessons: [{ id: "l1", title: "Bid, ask and the spread", mins: 6, body: L1, free: true }, { id: "l2", title: "Who is on the other side of your trade", mins: 7, body: L2 }], quiz: QUIZ1 },
       { id: "m2", name: "The instruments", lessons: [{ id: "l1", title: "Stocks, bonds and funds", mins: 0 }, { id: "l2", title: "Currencies and commodities", mins: 0 }], quiz: null },
@@ -146,7 +146,7 @@ export const TRACKS: SeedTrack[] = [
   },
   {
     id: "t3", name: "Understanding Risk",
-    blurb: "Why most short-term traders lose, what leverage really does, and how to recognise when you are being sold to.",
+    blurb: "Learn how to protect your capital and make smarter, more confident decisions.",
     modules: [
       { id: "m1", name: "Leverage and margin", lessons: [{ id: "l1", title: "What leverage really borrows", mins: 0 }, { id: "l2", title: "Margin, and how it gets called", mins: 0 }], quiz: null },
       { id: "m2", name: "Position sizing", lessons: [{ id: "l1", title: "Sizing from the stop, not the balance", mins: 0 }], quiz: null },
@@ -155,7 +155,7 @@ export const TRACKS: SeedTrack[] = [
   },
   {
     id: "t4", name: "Building Something",
-    blurb: "Entrepreneurship as a talent developed: skills, small bets, first customers, and the fundamentals that compound.",
+    blurb: "Apply what you’ve learned to build wealth, create opportunities and achieve freedom.",
     modules: [
       { id: "m1", name: "Small bets", lessons: [{ id: "l1", title: "Risking time before money", mins: 0 }], quiz: null },
       { id: "m2", name: "First customers", lessons: [{ id: "l1", title: "Selling before building", mins: 0 }], quiz: null },

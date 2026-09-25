@@ -159,24 +159,26 @@ function motif(kind: ArtKind, id: string): ReactNode {
 }
 
 /* Flat variant: one bold gold line-icon on the navy gradient — cleaner at tile sizes. */
-function flatMotif(kind: ArtKind, id: string): ReactNode | null {
-  const S = { stroke: GOLD, strokeWidth: 3.2, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const, filter: `url(#${id}g)` };
+function flatMotif(kind: ArtKind): ReactNode | null {
+  const G = "#e6b774";
+  const S = { stroke: G, strokeWidth: 2.4, fill: "none", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (kind) {
     case "t1": return (<g {...S}>
-      <ellipse cx="60" cy="72" rx="24" ry="8" />
-      <path d="M36 72v10c0 4.4 10.7 8 24 8s24-3.6 24-8V72" /><path d="M36 82v10c0 4.4 10.7 8 24 8s24-3.6 24-8V82" />
-      <circle cx="90" cy="44" r="17" /><text x="90" y="51" textAnchor="middle" fontSize="19" fontFamily="Georgia,serif" fill={GOLD} stroke="none">£</text>
+      <ellipse cx="60" cy="76" rx="20" ry="7" />
+      <path d="M40 76v9c0 3.9 9 7 20 7s20-3.1 20-7v-9" /><path d="M40 85v9c0 3.9 9 7 20 7s20-3.1 20-7v-9" />
+      <circle cx="84" cy="46" r="16" /><text x="84" y="52.5" textAnchor="middle" fontSize="17" fontFamily="Georgia,serif" fill={G} stroke="none">£</text>
+      <path d="M88 76h14M88 86h10" />
     </g>);
     case "t2": case "practise": return (<g {...S}>
-      {[[40, 44, 100, 60, 84], [62, 34, 88, 44, 72], [84, 52, 106, 62, 92], [106, 30, 78, 38, 62]].map(([x, top, bot, bt, bb]) => (<g key={x}><line x1={x} y1={top} x2={x} y2={bot} /><rect x={x - 8} y={bt} width="16" height={bb - bt} rx="2" /></g>))}
+      {[[44, 64, 106, 74, 96], [62, 52, 96, 60, 84], [80, 60, 108, 68, 92], [98, 34, 80, 42, 66]].map(([x, top, bot, bt, bb]) => (<g key={x}><line x1={x} y1={top} x2={x} y2={bot} /><rect x={x - 6} y={bt} width="12" height={bb - bt} rx="1.5" /></g>))}
     </g>);
     case "t3": case "safety": return (<g {...S}>
-      <path d="M70 22 L106 36 V64 C106 90 88 106 70 114 C52 106 34 90 34 64 V36 Z" />
-      <path d="M70 52v22" strokeWidth="4" /><circle cx="70" cy="86" r="2.6" fill={GOLD} stroke="none" />
+      <path d="M70 26 L102 38 V64 C102 88 86 102 70 110 C54 102 38 88 38 64 V38 Z" />
+      <path d="M70 52v22" strokeWidth="3.4" /><circle cx="70" cy="84" r="2.4" fill={G} stroke="none" />
     </g>);
     case "t4": return (<g {...S}>
-      {[[38, 84], [56, 72], [74, 62], [92, 50]].map(([x, y]) => <rect key={x} x={x - 6} y={y} width="12" height={110 - y} rx="2" />)}
-      <path d="M32 58 C48 50 62 44 80 30 L104 26" /><path d="M92 24l12 2-2 12" />
+      {[[44, 92], [58, 82], [72, 72], [86, 62]].map(([x, y]) => <rect key={x} x={x - 4.5} y={y} width="9" height={104 - y} rx="1.5" />)}
+      <path d="M36 66 C52 60 66 54 78 42 L100 30" /><path d="M89 29l11 1-1 11" />
     </g>);
     default: return null;
   }
@@ -188,6 +190,7 @@ export function Art({ kind, h = 74, w = "100%", label, className, style, flat }:
   return (
     <svg className={className} style={style} width={w} height={h} viewBox="0 0 140 132" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
+        <linearGradient id={id + "pb"} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#0d2f57" /><stop offset="1" stopColor="#061c3a" /></linearGradient>
         <linearGradient id={id + "bg"} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#02193a" /><stop offset=".55" stopColor="#062a52" /><stop offset="1" stopColor="#0b3c6a" /></linearGradient>
         <radialGradient id={id + "r"} cx="80%" cy="12%" r="70%"><stop offset="0" stopColor={GOLD} stopOpacity=".34" /><stop offset=".6" stopColor={GOLD} stopOpacity=".06" /><stop offset="1" stopColor={GOLD} stopOpacity="0" /></radialGradient>
         <radialGradient id={id + "v"} cx="50%" cy="50%" r="70%"><stop offset=".55" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".45" /></radialGradient>
@@ -196,13 +199,13 @@ export function Art({ kind, h = 74, w = "100%", label, className, style, flat }:
         <filter id={id + "g"} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b" /><feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 .55 0" result="c" /><feMerge><feMergeNode in="c" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
         <filter id={id + "n"}><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch" /><feColorMatrix type="saturate" values="0" /><feComponentTransfer><feFuncA type="table" tableValues="0 .08" /></feComponentTransfer></filter>
       </defs>
-      <rect width="140" height="132" fill={`url(#${id}bg)`} />
-      <rect width="140" height="132" fill={`url(#${id}r)`} />
+      <rect width="140" height="132" fill={flat ? `url(#${id}pb)` : `url(#${id}bg)`} />
+      {!flat && <rect width="140" height="132" fill={`url(#${id}r)`} />}
       {!flat && <g opacity=".5" stroke={PALE} strokeWidth=".5" fill="none"><circle cx="70" cy="66" r="58" opacity=".18" /><circle cx="70" cy="66" r="50" opacity=".12" strokeDasharray="1 4" /></g>}
-      {(flat && flatMotif(kind, id)) || motif(kind, id)}
+      {flat && flatMotif(kind) ? <g transform="translate(70 66) scale(1.16) translate(-70 -66)">{flatMotif(kind)}</g> : motif(kind, id)}
       {label && <text x="70" y="74" textAnchor="middle" fontSize="30" fontFamily="var(--serif),Georgia,serif" fill={PALE} style={{ paintOrder: "stroke" }} stroke="#06182e" strokeWidth="4">{label}</text>}
-      <rect width="140" height="132" filter={`url(#${id}n)`} opacity=".9" />
-      <rect width="140" height="132" fill={`url(#${id}v)`} />
+      {!flat && <rect width="140" height="132" filter={`url(#${id}n)`} opacity=".9" />}
+      {!flat && <rect width="140" height="132" fill={`url(#${id}v)`} />}
     </svg>
   );
 }
