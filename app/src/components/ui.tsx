@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { I } from "./icons";
 import { levelOf, levelTitle, levelProgress, DAILY_GOAL_XP } from "@/lib/levels";
+import { Art, TRACK_ART } from "./art";
+import { haptic } from "@/lib/native";
 
 export const money = (pence: number, dec = 0) => (pence < 0 ? "−£" : "£") + (Math.abs(pence) / 100).toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec });
 export const fmt = (n: number, d = 2) => Number(n).toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -54,25 +56,9 @@ export function XpCard({ stats, compact }: { stats: Stats; compact?: boolean }) 
   );
 }
 
-/* Brand-pure duotone hero graphics for the four tracks. */
+/* Track heroes are now the bespoke engraved artwork (art.tsx). Kept as a thin alias. */
 export function TrackHero({ kind, h = 74 }: { kind: string; h?: number }) {
-  const id = "g" + kind + h;
-  const motif: Record<string, ReactNode> = {
-    t1: <><path d="M40 84h60M50 72h40M60 60h20" stroke="#f5cf98" strokeWidth="3" strokeLinecap="round" opacity=".9" /><circle cx="70" cy="46" r="12" stroke="#f5cf98" strokeWidth="3" fill="none" /><text x="70" y="51" fontSize="11" fill="#f5cf98" textAnchor="middle" fontFamily="serif">£</text></>,
-    t2: <g stroke="#f5cf98" strokeWidth="3"><line x1="38" y1="40" x2="38" y2="88" /><rect x="32" y="52" width="12" height="24" fill="#f5cf98" opacity=".3" /><line x1="64" y1="34" x2="64" y2="80" /><rect x="58" y="44" width="12" height="20" fill="#f5cf98" opacity=".5" /><line x1="90" y1="46" x2="90" y2="92" /><rect x="84" y="58" width="12" height="26" fill="#f5cf98" opacity=".4" /></g>,
-    t3: <><path d="M70 30l30 12v14c0 20-14 30-30 36-16-6-30-16-30-36V42z" stroke="#f5cf98" strokeWidth="3" fill="none" /><path d="M70 52v14M70 74v.5" stroke="#f5cf98" strokeWidth="3" strokeLinecap="round" /></>,
-    t4: <><path d="M45 88V64l25-16 25 16v24z" stroke="#f5cf98" strokeWidth="3" fill="none" /><path d="M45 64l25 16 25-16" stroke="#f5cf98" strokeWidth="3" fill="none" /><path d="M70 48v-14M62 40l8-6 8 6" stroke="#f5cf98" strokeWidth="3" fill="none" strokeLinecap="round" /></>,
-  };
-  return (
-    <svg width="100%" height={h} viewBox={`0 0 140 ${h}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#021c3d" /><stop offset=".55" stopColor="#083058" /><stop offset="1" stopColor="#12508a" /></linearGradient>
-        <radialGradient id={id + "r"} cx="85%" cy="15%" r="60%"><stop offset="0" stopColor="#edb671" stopOpacity=".28" /><stop offset="1" stopColor="#edb671" stopOpacity="0" /></radialGradient>
-      </defs>
-      <rect width="140" height={h} fill={`url(#${id})`} /><rect width="140" height={h} fill={`url(#${id + "r"})`} />
-      <g transform={`translate(0,${(h - 132) / 2})`}>{motif[kind] ?? motif.t1}</g>
-    </svg>
-  );
+  return <Art kind={TRACK_ART[kind] ?? "t1"} h={h} />;
 }
 
 export function Sheet({ onClose, children, tall }: { onClose: () => void; children: ReactNode; tall?: boolean }) {
@@ -97,6 +83,7 @@ export function Toasts({ items }: { items: Toast[] }) {
 export function useToasts(): [Toast[], ToastFn] {
   const [items, setItems] = useState<Toast[]>([]);
   const push: ToastFn = (xp, label) => {
+    haptic(xp ? "success" : "light");
     const id = Date.now() + Math.random();
     setItems((s) => [...s.slice(-2), { id, xp, label }]);
     setTimeout(() => setItems((s) => s.filter((t) => t.id !== id)), 2400);

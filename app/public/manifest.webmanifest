@@ -1,0 +1,24 @@
+{
+  "name": "Ten Talents Academy",
+  "short_name": "Ten Talents",
+  "description": "Learn how money and markets work. Practise before you risk a penny. Build what you've been given. Education, not advice.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#011936",
+  "theme_color": "#011936",
+  "lang": "en-GB",
+  "categories": ["education", "finance"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Continue learning", "url": "/?go=learn", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Build", "url": "/?go=build", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
