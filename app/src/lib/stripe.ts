@@ -10,6 +10,9 @@ export const stripe = () => {
 
 export const PRICE_MEMBERSHIP = () => process.env.STRIPE_PRICE_MEMBERSHIP ?? "";
 export const PRICE_SIGNALS = () => process.env.STRIPE_PRICE_SIGNALS ?? "";
+/** Optional: a Stripe Payment Link (buy.stripe.com/...). When set, checkout sends the user
+    there with client_reference_id=userId so the webhook can map the subscription back. */
+export const PAYMENT_LINK = () => process.env.STRIPE_PAYMENT_LINK ?? "";
 
 /** Get or create the Stripe customer for a user; store the id. */
 export async function customerFor(userId: string, email: string) {
@@ -30,7 +33,9 @@ export async function applySubscription(sub: Stripe.Subscription) {
   if (!userId) return;
 
   const items = sub.items.data;
-  const mItem = items.find((i) => i.price.id === PRICE_MEMBERSHIP());
+  // With a Payment Link there may be no STRIPE_PRICE_MEMBERSHIP configured: the first
+  // (only) item is the membership.
+  const mItem = PRICE_MEMBERSHIP() ? items.find((i) => i.price.id === PRICE_MEMBERSHIP()) : items[0];
   const sItem = items.find((i) => i.price.id === PRICE_SIGNALS());
   const dead = ["canceled", "unpaid", "incomplete_expired"].includes(sub.status);
   const status = dead ? "canceled" : sub.status; // active | trialing | past_due | ...

@@ -53,7 +53,11 @@ run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both
    (`vercel-build` → `scripts/vercel-build.mjs`) whenever DATABASE_URL is set.
    Manual alternative: `DATABASE_URL=... npm run db:setup`, or run
    `ten-talents-academy-neon-setup.sql` in the Neon SQL editor.
-3. Stripe (test mode first):
+3. Stripe. Fastest route: a **Payment Link** for the £15.99/month membership →
+   `STRIPE_PAYMENT_LINK`, plus `STRIPE_SECRET_KEY` and the webhook below
+   (`STRIPE_WEBHOOK_SECRET`). Set the link's after-payment redirect to
+   `https://<app>/?checkout=success`. The webhook maps the purchase to the signed-in
+   user via `client_reference_id`. Full route (test mode first):
    - Product **Academy Membership**, recurring price **£15.99/month GBP** → `STRIPE_PRICE_MEMBERSHIP`
    - Product **Signals Access**, recurring price **£4.99/month GBP** → `STRIPE_PRICE_SIGNALS`
    - Webhook endpoint `https://<app>/api/stripe/webhook` with events:

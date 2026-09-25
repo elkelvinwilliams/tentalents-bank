@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db, tables } from "@/db";
 import { stripe, applySubscription } from "@/lib/stripe";
+import { eq } from "drizzle-orm";
 
 /* THE source of truth for entitlement. Signature-verified, idempotent.
    The client never writes entitlement state; only this handler (and the
@@ -32,7 +33,16 @@ export async function POST(req: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object;
       if (session.subscription) {
-        const sub = await stripe().subscriptions.retrieve(session.subscription as string);
+        const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+        let sub = await stripe().subscriptions.retrieve(subId);
+        // Payment Link purchases carry no metadata: map them by client_reference_id
+        // (set by /api/stripe/checkout) or, failing that, by the email Stripe collected.
+        if (!sub.metadata.userId) {
+          let userId = session.client_reference_id ?? null;
+          const email = session.customer_details?.email?.toLowerCase();
+          if (!userId && email) userId = (await db.select({ id: tables.users.id }).from(tables.users).where(eq(tables.users.email, email)))[0]?.id ?? null;
+          if (userId) sub = await stripe().subscriptions.update(subId, { metadata: { userId } });
+        }
         await applySubscription(sub);
       }
       break;
