@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { getEntitlement, SIGNALS_ENABLED } from "@/lib/entitlements";
-import { customerFor, stripe, PRICE_MEMBERSHIP, PRICE_SIGNALS } from "@/lib/stripe";
+import { customerFor, stripe, PRICE_MEMBERSHIP, PRICE_SIGNALS, PAYMENT_LINK } from "@/lib/stripe";
 import { appUrl } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
-  if (!user.emailVerifiedAt) return NextResponse.json({ error: "Confirm your email first — check your inbox for the link." }, { status: 403 });
   const { addon } = await req.json().catch(() => ({}));
   const ent = await getEntitlement(user.id);
   if (ent.member) return NextResponse.json({ error: "You already have an active membership — manage it from your profile." }, { status: 400 });
+
+  // Payment Link route: Stripe collects the email itself, so no verification gate here.
+  if (PAYMENT_LINK()) {
+    const u = new URL(PAYMENT_LINK());
+    u.searchParams.set("client_reference_id", user.id);
+    u.searchParams.set("prefilled_email", user.email);
+    return NextResponse.json({ url: u.toString() });
+  }
+  if (!user.emailVerifiedAt) return NextResponse.json({ error: "Confirm your email first — check your inbox for the link." }, { status: 403 });
   if (addon && !SIGNALS_ENABLED) return NextResponse.json({ error: "Signals access isn't available yet." }, { status: 400 });
 
   try {
