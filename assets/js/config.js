@@ -3,4 +3,4 @@
    single-file prototype at academy/. After deploying to Vercel, set it to the app URL,
    e.g. "https://ten-talents-academy.vercel.app/" — every Academy link and the old
    prototype's redirect follow this one line. */
-window.TT_APP_URL = "academy/";
+window.TT_APP_URL = "https://tentalents-bank.vercel.app/";
