@@ -37,10 +37,10 @@ export async function loadContent(): Promise<{ tracks: TrackMeta[]; glossary: [s
 export type GoalRow = { id: string; name: string; icon: string; targetPence: number; savedPence: number; targetMonth: string | null; milestones: number[] };
 export type JournalRow = { id: string; date: string; symbol: string; direction: string; pnlPence: number; planned: boolean; emotionBefore: string; emotionAfter: string; reason: string };
 
-export type BuildSummary = { health: Record<string, number> | null; reviewedWeek: boolean; netWorthPence: number | null; wealthTakenAt: string | null; debts: number; talents: number; givingMonths: number };
+export type BuildSummary = { health: Record<string, number> | null; reviewedWeek: boolean; netWorthPence: number | null; wealthTakenAt: string | null; debts: number; talents: number; givingMonths: number; simOpen: number; simCashPence: number | null };
 
 export async function loadUserState(user: SessionUser) {
-  const [progress, attempts, certs, ent, stats, goalRows, journalRows, health, review, wealth, debtRows, talentRows, givingRows] = await Promise.all([
+  const [progress, attempts, certs, ent, stats, goalRows, journalRows, health, review, wealth, debtRows, talentRows, givingRows, simAcc, simOpenRows] = await Promise.all([
     db.select().from(tables.lessonProgress).where(eq(tables.lessonProgress.userId, user.id)),
     db.select().from(tables.quizAttempts).where(eq(tables.quizAttempts.userId, user.id)),
     db.select().from(tables.certificates).where(eq(tables.certificates.userId, user.id)),
@@ -54,6 +54,8 @@ export async function loadUserState(user: SessionUser) {
     db.select({ id: tables.debts.id }).from(tables.debts).where(eq(tables.debts.userId, user.id)),
     db.select({ id: tables.talents.id }).from(tables.talents).where(eq(tables.talents.userId, user.id)),
     db.select({ id: tables.givingEntries.id }).from(tables.givingEntries).where(eq(tables.givingEntries.userId, user.id)),
+    db.select({ cashPence: tables.simAccounts.cashPence }).from(tables.simAccounts).where(eq(tables.simAccounts.userId, user.id)),
+    db.select({ id: tables.simOrders.id }).from(tables.simOrders).where(and(eq(tables.simOrders.userId, user.id), eq(tables.simOrders.status, "open"))),
   ]);
   const w = wealth[0];
   const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
@@ -63,6 +65,7 @@ export async function loadUserState(user: SessionUser) {
     netWorthPence: w ? sum(w.assets) - sum(w.liabilities) : null,
     wealthTakenAt: w ? w.takenAt.toISOString() : null,
     debts: debtRows.length, talents: talentRows.length, givingMonths: givingRows.length,
+    simOpen: simOpenRows.length, simCashPence: simAcc[0]?.cashPence ?? null,
   };
   const done: Record<string, 1> = {};
   for (const p of progress) done[p.lessonId] = 1;
