@@ -2,6 +2,7 @@
 // Paste into Neon's SQL editor and Run. Fully idempotent — safe to run repeatedly.
 import { readFileSync, writeFileSync } from "node:fs";
 import { TRACKS, GLOSSARY } from "../src/content/seed-data";
+import { seedRows } from "../src/lib/partners-data";
 
 const q = (s: string) => "'" + String(s).replace(/'/g, "''") + "'";
 
@@ -11,14 +12,6 @@ const readMigration = (f: string) => readFileSync("drizzle/" + f, "utf8")
   .split("--> statement-breakpoint").map(s => s.trim()).filter(Boolean).join("\n\n");
 let migration = migrationFiles.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n");
 
-// Upgrade file for databases that already ran the first setup: later migrations only.
-const later = migrationFiles.slice(1);
-if (later.length) {
-  writeFileSync("../ten-talents-academy-neon-upgrade.sql",
-    `-- Ten Talents Academy — UPGRADE (run only if you already ran ten-talents-academy-neon-setup.sql before ${later[0].slice(0, 4)})\n-- Adds: ${later.join(", ")}. Generated ${new Date().toISOString().slice(0, 10)}.\n\n` +
-    later.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n") + "\n");
-  console.log("wrote ten-talents-academy-neon-upgrade.sql");
-}
 
 
 let out = `-- Ten Talents Academy — full database build (schema + seed)
@@ -51,6 +44,34 @@ GLOSSARY.forEach(([term, def], gi) => {
   out += `INSERT INTO glossary_terms (id,term,definition,position) VALUES (${q("g"+gi)},${q(term)},${q(def)},${gi}) ON CONFLICT (id) DO UPDATE SET term=EXCLUDED.term,definition=EXCLUDED.definition,position=EXCLUDED.position;\n`;
 });
 
-out += `\n-- Done. To verify, run:  SELECT count(*) FROM lessons;  -- expect 17\n`;
+/* Affiliate partnerships — the five PROSPECTS, provisional statuses only. Insert-if-missing so dashboard edits are never overwritten. */
+const R = seedRows();
+const v = (x: unknown) => (x === null || x === undefined ? "NULL" : typeof x === "boolean" ? String(x) : typeof x === "number" ? String(x) : typeof x === "object" ? q(JSON.stringify(x)) + "::jsonb" : q(String(x)));
+let pt = "";
+const ins = (table: string, rows: Record<string, unknown>[], cols: Record<string, string>) => rows.forEach((r) => { const ks = Object.keys(cols).filter((k) => r[k] !== undefined); pt += `INSERT INTO ${table} (${ks.map((k) => cols[k]).join(",")}) VALUES (${ks.map((k) => v(r[k])).join(",")}) ON CONFLICT DO NOTHING;\n`; });
+pt += `\n-- Affiliate partnerships: five prospects (provisional; nothing submitted, approved or confirmed). Insert-if-missing.\n`;
+ins("partner_firms", R.firms as Record<string, unknown>[], { id: "id", slug: "slug", name: "name", programmeUrl: "programme_url", applyUrl: "apply_url", requirementsUrl: "requirements_url", model: "model", applicationStatus: "application_status", termsStatus: "terms_status", complianceStatus: "compliance_status", countryEligibility: "country_eligibility", targetCountries: "target_countries", owner: "owner", nextAction: "next_action", nextActionDue: "next_action_due", lastResearchAt: "last_research_at", notes: "notes" });
+ins("partner_research", R.research as Record<string, unknown>[], { id: "id", firmId: "firm_id", topic: "topic", claim: "claim", sourceUrl: "source_url", verification: "verification", verifiedAt: "verified_at", notes: "notes" });
+ins("partner_applications", R.applications as Record<string, unknown>[], { id: "id", firmId: "firm_id", checklist: "checklist", documents: "documents" });
+ins("partner_term_items", R.terms as Record<string, unknown>[], { id: "id", firmId: "firm_id", key: "key", status: "status" });
+ins("partner_compliance", R.compliance as Record<string, unknown>[], { id: "id", firmId: "firm_id", permittedToPromote: "permitted_to_promote", legalAdviceRequired: "legal_advice_required", openQuestions: "open_questions" });
+ins("partner_channel_approvals", R.channels as Record<string, unknown>[], { id: "id", firmId: "firm_id", channel: "channel", status: "status" });
+ins("partner_tasks", R.tasks as Record<string, unknown>[], { id: "id", firmId: "firm_id", title: "title", owner: "owner", priority: "priority", dueAt: "due_at" });
+ins("partner_audit", R.audit as Record<string, unknown>[], { id: "id", firmId: "firm_id", entity: "entity", entityId: "entity_id", field: "field", oldValue: "old_value", newValue: "new_value", actor: "actor" });
+
+out += pt;
+out += `\n-- Done. To verify, run:  SELECT count(*) FROM lessons;  -- expect 17.  SELECT count(*) FROM partner_firms;  -- expect 5\n`;
 writeFileSync("../ten-talents-academy-neon-setup.sql", out);
 console.log("wrote ten-talents-academy-neon-setup.sql");
+
+// Upgrade file for databases that already ran the first setup: later migrations, plus the partner seed (insert-if-missing).
+const later = migrationFiles.slice(1);
+if (later.length) {
+  writeFileSync("../ten-talents-academy-neon-upgrade.sql",
+    `-- Ten Talents Academy — UPGRADE (run only if you already ran ten-talents-academy-neon-setup.sql before ${later[0].slice(0, 4)})\n-- Adds: ${later.join(", ")}. Generated ${new Date().toISOString().slice(0, 10)}.\n\n` +
+    later.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n") + "\n" + pt + "\n");
+  console.log("wrote ten-talents-academy-neon-upgrade.sql");
+}
+
+// The partner seed module opens the dev database on import; exit explicitly so the handle does not keep the process alive.
+process.exit(0);

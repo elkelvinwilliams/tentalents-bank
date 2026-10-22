@@ -2,7 +2,7 @@
 -- Paste this whole file into the Neon SQL editor and press Run.
 -- Run once on your new (empty) Neon database. (The content INSERTs are re-runnable;
 -- the table creation is not — if you ever need a clean slate, drop the tables first.)
--- Generated 2026-09-25.
+-- Generated 2026-10-22.
 
 -- migration 0000_init.sql
 CREATE TABLE "certificates" (
@@ -379,9 +379,236 @@ CREATE INDEX "sim_equity_user_idx" ON "sim_equity" USING btree ("user_id");
 
 CREATE INDEX "sim_orders_user_idx" ON "sim_orders" USING btree ("user_id");
 
+-- migration 0004_partners.sql
+CREATE TABLE "partner_applications" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"checklist" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"documents" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"submitted_at" text,
+	"reference_no" text DEFAULT '' NOT NULL,
+	"contact_id" text,
+	"follow_up_at" text,
+	"outcome" text DEFAULT '' NOT NULL,
+	"outcome_reason" text DEFAULT '' NOT NULL,
+	"notes" text DEFAULT '' NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_audit" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"entity" text NOT NULL,
+	"entity_id" text DEFAULT '' NOT NULL,
+	"field" text NOT NULL,
+	"old_value" text DEFAULT '' NOT NULL,
+	"new_value" text DEFAULT '' NOT NULL,
+	"actor" text DEFAULT 'admin' NOT NULL,
+	"at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_channel_approvals" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"channel" text NOT NULL,
+	"status" text DEFAULT 'not_reviewed' NOT NULL,
+	"content_ref" text DEFAULT '' NOT NULL,
+	"version" text DEFAULT '' NOT NULL,
+	"approved_at" text,
+	"review_at" text,
+	"notes" text DEFAULT '' NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_comms" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"at" text NOT NULL,
+	"kind" text DEFAULT 'email' NOT NULL,
+	"contact_name" text DEFAULT '' NOT NULL,
+	"summary" text DEFAULT '' NOT NULL,
+	"commitments" text DEFAULT '' NOT NULL,
+	"questions_open" text DEFAULT '' NOT NULL,
+	"next_follow_up" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_compliance" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"permitted_to_promote" text DEFAULT 'unknown' NOT NULL,
+	"contracting_entity" text DEFAULT '' NOT NULL,
+	"restrictions" text DEFAULT '' NOT NULL,
+	"risk_warnings" text DEFAULT '' NOT NULL,
+	"disclosure_wording" text DEFAULT '' NOT NULL,
+	"open_questions" text DEFAULT '' NOT NULL,
+	"legal_advice_required" boolean DEFAULT false NOT NULL,
+	"notes" text DEFAULT '' NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_contacts" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"name" text DEFAULT '' NOT NULL,
+	"role" text DEFAULT '' NOT NULL,
+	"email" text DEFAULT '' NOT NULL,
+	"phone" text DEFAULT '' NOT NULL,
+	"is_primary" boolean DEFAULT false NOT NULL,
+	"notes" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_firms" (
+	"id" text PRIMARY KEY NOT NULL,
+	"slug" text NOT NULL,
+	"name" text NOT NULL,
+	"logo_url" text,
+	"programme_url" text DEFAULT '' NOT NULL,
+	"apply_url" text DEFAULT '' NOT NULL,
+	"requirements_url" text DEFAULT '' NOT NULL,
+	"model" text DEFAULT 'enquiry_pending' NOT NULL,
+	"application_status" text DEFAULT 'not_started' NOT NULL,
+	"terms_status" text DEFAULT 'unverified' NOT NULL,
+	"compliance_status" text DEFAULT 'not_reviewed' NOT NULL,
+	"country_eligibility" text DEFAULT 'unknown' NOT NULL,
+	"country_note" text DEFAULT '' NOT NULL,
+	"target_countries" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"owner" text DEFAULT '' NOT NULL,
+	"next_action" text DEFAULT '' NOT NULL,
+	"next_action_due" text,
+	"last_contact_at" text,
+	"last_research_at" text,
+	"notes" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_ledger" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"at" text NOT NULL,
+	"kind" text NOT NULL,
+	"amount_minor" integer NOT NULL,
+	"currency" text DEFAULT 'GBP' NOT NULL,
+	"reference" text DEFAULT '' NOT NULL,
+	"note" text DEFAULT '' NOT NULL,
+	"source" text DEFAULT 'manual' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_reports" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"period_start" text NOT NULL,
+	"period_end" text NOT NULL,
+	"impressions" integer,
+	"clicks" integer,
+	"registrations" integer,
+	"verified_referrals" integer,
+	"qualified_referrals" integer,
+	"pending_minor" integer,
+	"approved_minor" integer,
+	"reversed_minor" integer,
+	"paid_minor" integer,
+	"currency" text DEFAULT 'GBP' NOT NULL,
+	"expected_payment_at" text,
+	"paid_at" text,
+	"source" text DEFAULT 'manual' NOT NULL,
+	"source_note" text DEFAULT '' NOT NULL,
+	"entered_by" text DEFAULT '' NOT NULL,
+	"reconciliation_notes" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_research" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"topic" text DEFAULT 'other' NOT NULL,
+	"claim" text DEFAULT '' NOT NULL,
+	"source_url" text DEFAULT '' NOT NULL,
+	"verification" text DEFAULT 'assumption' NOT NULL,
+	"verified_at" text,
+	"notes" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "partner_tasks" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"title" text NOT NULL,
+	"owner" text DEFAULT '' NOT NULL,
+	"due_at" text,
+	"priority" text DEFAULT 'normal' NOT NULL,
+	"status" text DEFAULT 'open' NOT NULL,
+	"notes" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"completed_at" timestamp with time zone
+);
+
+CREATE TABLE "partner_term_items" (
+	"id" text PRIMARY KEY NOT NULL,
+	"firm_id" text NOT NULL,
+	"key" text NOT NULL,
+	"value" text DEFAULT '' NOT NULL,
+	"currency" text DEFAULT '' NOT NULL,
+	"source_url" text DEFAULT '' NOT NULL,
+	"source_note" text DEFAULT '' NOT NULL,
+	"status" text DEFAULT 'unverified' NOT NULL,
+	"verified_at" text,
+	"notes" text DEFAULT '' NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE "partner_applications" ADD CONSTRAINT "partner_applications_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_audit" ADD CONSTRAINT "partner_audit_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_channel_approvals" ADD CONSTRAINT "partner_channel_approvals_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_comms" ADD CONSTRAINT "partner_comms_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_compliance" ADD CONSTRAINT "partner_compliance_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_contacts" ADD CONSTRAINT "partner_contacts_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_ledger" ADD CONSTRAINT "partner_ledger_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_reports" ADD CONSTRAINT "partner_reports_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_research" ADD CONSTRAINT "partner_research_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_tasks" ADD CONSTRAINT "partner_tasks_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+ALTER TABLE "partner_term_items" ADD CONSTRAINT "partner_term_items_firm_id_partner_firms_id_fk" FOREIGN KEY ("firm_id") REFERENCES "public"."partner_firms"("id") ON DELETE cascade ON UPDATE no action;
+
+CREATE UNIQUE INDEX "partner_applications_firm_uq" ON "partner_applications" USING btree ("firm_id");
+
+CREATE INDEX "partner_audit_firm_idx" ON "partner_audit" USING btree ("firm_id");
+
+CREATE UNIQUE INDEX "partner_channel_uq" ON "partner_channel_approvals" USING btree ("firm_id","channel");
+
+CREATE INDEX "partner_comms_firm_idx" ON "partner_comms" USING btree ("firm_id");
+
+CREATE UNIQUE INDEX "partner_compliance_firm_uq" ON "partner_compliance" USING btree ("firm_id");
+
+CREATE INDEX "partner_contacts_firm_idx" ON "partner_contacts" USING btree ("firm_id");
+
+CREATE UNIQUE INDEX "partner_firms_slug_uq" ON "partner_firms" USING btree ("slug");
+
+CREATE INDEX "partner_ledger_firm_idx" ON "partner_ledger" USING btree ("firm_id");
+
+CREATE INDEX "partner_reports_firm_idx" ON "partner_reports" USING btree ("firm_id");
+
+CREATE INDEX "partner_research_firm_idx" ON "partner_research" USING btree ("firm_id");
+
+CREATE INDEX "partner_tasks_firm_idx" ON "partner_tasks" USING btree ("firm_id");
+
+CREATE UNIQUE INDEX "partner_term_items_uq" ON "partner_term_items" USING btree ("firm_id","key");
+
 -- ============ seed content (from the prototype) ============
 
-INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t1','Money Foundations','Income, spending, saving, debt, compounding, inflation. The machinery underneath everything else.',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
+INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t1','Money Foundations','Build a strong financial mindset and understand how money works.',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t1-m1','t1','Where money goes','lessons',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t1-m1-l1','t1-m1','Income, spending and the gap between them',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t1-m1-l2','t1-m1','Why saving is a rate, not an amount',0,'',false,1,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
@@ -392,7 +619,7 @@ INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t1-m3','
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t1-m3-l1','t1-m3','The arithmetic of patience',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t1-m3-l2','t1-m3','Inflation, the quiet tax',0,'',false,1,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 
-INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t2','How Markets Work','What is actually being bought and sold, who the players are, and why prices move.',1,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
+INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t2','How Markets Work','Learn the structure, participants and behaviour of global financial markets.',1,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t2-m1','t2','How a price is made','lessons',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t2-m1-l1','t2-m1','Bid, ask and the spread',6,'
 <p>Every market quotes two prices at once, not one. If you have only ever seen a single number on a news ticker, this is the first thing to unlearn.</p>
@@ -436,7 +663,7 @@ INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,positi
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t2-m3','t2','Sessions and liquidity','lessons',2,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t2-m3-l1','t2-m3','The three trading sessions',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 
-INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t3','Understanding Risk','Why most short-term traders lose, what leverage really does, and how to recognise when you are being sold to.',2,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
+INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t3','Understanding Risk','Learn how to protect your capital and make smarter, more confident decisions.',2,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t3-m1','t3','Leverage and margin','lessons',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t3-m1-l1','t3-m1','What leverage really borrows',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t3-m1-l2','t3-m1','Margin, and how it gets called',0,'',false,1,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
@@ -445,7 +672,7 @@ INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,positi
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t3-m3','t3','Being sold to','lessons',2,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t3-m3-l1','t3-m3','Reading a promise for what it is',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 
-INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t4','Building Something','Entrepreneurship as a talent developed: skills, small bets, first customers, and the fundamentals that compound.',3,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
+INSERT INTO tracks (id,name,blurb,position,published) VALUES ('t4','Building Something','Apply what you’ve learned to build wealth, create opportunities and achieve freedom.',3,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,blurb=EXCLUDED.blurb,position=EXCLUDED.position;
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t4-m1','t4','Small bets','lessons',0,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
 INSERT INTO lessons (id,module_id,title,minutes,body_html,is_free_preview,position,published) VALUES ('t4-m1-l1','t4-m1','Risking time before money',0,'',false,0,true) ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,minutes=EXCLUDED.minutes,body_html=EXCLUDED.body_html,is_free_preview=EXCLUDED.is_free_preview,position=EXCLUDED.position;
 INSERT INTO modules (id,track_id,name,kind,position,published) VALUES ('t4-m2','t4','First customers','lessons',1,true) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name,position=EXCLUDED.position;
@@ -470,4 +697,195 @@ INSERT INTO glossary_terms (id,term,definition,position) VALUES ('g16','Position
 INSERT INTO glossary_terms (id,term,definition,position) VALUES ('g17','Long','A position that gains value if the price rises.',17) ON CONFLICT (id) DO UPDATE SET term=EXCLUDED.term,definition=EXCLUDED.definition,position=EXCLUDED.position;
 INSERT INTO glossary_terms (id,term,definition,position) VALUES ('g18','Short','A position that gains value if the price falls.',18) ON CONFLICT (id) DO UPDATE SET term=EXCLUDED.term,definition=EXCLUDED.definition,position=EXCLUDED.position;
 
--- Done. To verify, run:  SELECT count(*) FROM lessons;  -- expect 17
+-- Affiliate partnerships: five prospects (provisional; nothing submitted, approved or confirmed). Insert-if-missing.
+INSERT INTO partner_firms (id,slug,name,programme_url,apply_url,requirements_url,model,application_status,terms_status,compliance_status,country_eligibility,target_countries,owner,next_action,next_action_due,last_research_at,notes) VALUES ('pf_axi','axi','Axi','https://www.axi.com/uk/partnerships/affiliate-program','','','cpa','researching','unverified','not_reviewed','unknown','["GB"]'::jsonb,'Kelvin Williams','Review the UK programme; request the current rate card; confirm UK audience eligibility, exact client qualification rules and which Ten Talents channels can be approved.','2026-11-04','2026-10-21','Prospect. Public page advertises CPA ''up to'' a stated maximum for qualified clients; the maximum is a ceiling, not a rate.
+
+Seeded from the partnerships brief on 2026-10-21. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_firms (id,slug,name,programme_url,apply_url,requirements_url,model,application_status,terms_status,compliance_status,country_eligibility,target_countries,owner,next_action,next_action_due,last_research_at,notes) VALUES ('pf_ig','ig','IG','https://www.ig.com/uk/marketing-partnership/affiliate-partnerships','','https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements','enquiry_pending','researching','unverified','not_reviewed','unknown','["GB"]'::jsonb,'Kelvin Williams','Review the publisher requirements; audit Ten Talents'' public web presence against them; identify missing original educational content or disclosures; apply only when ready.','2026-11-11','2026-10-21','Prospect. IG reviews publisher content, website ownership, relevance, quality, commission disclosure and compliance before accepting publishers. Apply only when the submission is accurate and ready.
+
+Seeded from the partnerships brief on 2026-10-21. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_firms (id,slug,name,programme_url,apply_url,requirements_url,model,application_status,terms_status,compliance_status,country_eligibility,target_countries,owner,next_action,next_action_due,last_research_at,notes) VALUES ('pf_pepperstone','pepperstone','Pepperstone','https://partnership.pepperstone.com/en/affiliates-program/','','','enquiry_pending','researching','unverified','not_reviewed','unknown','["GB"]'::jsonb,'Kelvin Williams','Confirm whether a UK-based Ten Talents affiliate can participate; request current CPA terms and qualification rules; ask separately about IB arrangements; record approved marketing channels.','2026-11-04','2026-10-21','Prospect. Pepperstone distinguishes CPA affiliate arrangements from introducing-broker (IB) arrangements; availability and terms depend on programme and country.
+
+Seeded from the partnerships brief on 2026-10-21. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_firms (id,slug,name,programme_url,apply_url,requirements_url,model,application_status,terms_status,compliance_status,country_eligibility,target_countries,owner,next_action,next_action_due,last_research_at,notes) VALUES ('pf_plus500','plus500','Plus500 / 500Affiliates','https://www.500affiliates.com/','','','enquiry_pending','researching','unverified','not_reviewed','unknown','["GB"]'::jsonb,'Kelvin Williams','Review the current official programme rules; confirm UK affiliate and UK customer eligibility; request current commission terms, qualification rules, approved traffic sources and compliance requirements.','2026-11-04','2026-10-21','Prospect. Do not assume older help pages represent the current agreement; only the current official programme rules count.
+
+Seeded from the partnerships brief on 2026-10-21. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_firms (id,slug,name,programme_url,apply_url,requirements_url,model,application_status,terms_status,compliance_status,country_eligibility,target_countries,owner,next_action,next_action_due,last_research_at,notes) VALUES ('pf_trading212','trading212','Trading 212','https://helpcentre.trading212.com/hc/en-us/articles/360008095077-How-can-I-become-a-Trading-212-Affiliate','','','enquiry_pending','researching','unverified','not_reviewed','unknown','["GB"]'::jsonb,'Kelvin Williams','Prepare a professional partnership enquiry (mission, audience, website, education content, proposed channels); ask whether a suitable current programme is available; request eligibility, commission and approval terms in writing.','2026-11-04','2026-10-21','Prospect. Trading 212 invites finance, investing and stock-market publishers to contact its partnerships team. No current CPA rate is assumed and acceptance is not guaranteed.
+
+Seeded from the partnerships brief on 2026-10-21. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_axi_1','pf_axi','programme_model','Axi advertises CPA payments ''up to'' a stated maximum for qualified clients.','https://www.axi.com/uk/partnerships/affiliate-program','assumption',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_axi_2','pf_axi','eligibility','Qualification may require account verification, a minimum deposit and trading volume, depending on the agreement.','https://www.axi.com/uk/partnerships/affiliate-program','assumption',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_axi_3','pf_axi','countries','UK audience eligibility and excluded jurisdictions not yet confirmed in writing.','https://www.axi.com/uk/partnerships/affiliate-program','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_axi_4','pf_axi','traffic_sources','Which Ten Talents promotional channels can be approved is unknown.','https://www.axi.com/uk/partnerships/affiliate-program','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_ig_1','pf_ig','website_audience','IG reviews publisher content, website ownership, relevance, quality, commission disclosure and compliance.','https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements','assumption',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_ig_2','pf_ig','programme_model','Commercial model (CPA / revenue share / hybrid) not yet confirmed for a UK education publisher.','https://www.ig.com/uk/marketing-partnership/affiliate-partnerships','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_ig_3','pf_ig','eligibility','Whether a sole trader (pre-incorporation) can be accepted is unknown.','https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_pepperstone_1','pf_pepperstone','programme_model','CPA affiliate and IB arrangements are separate programmes with different terms.','https://partnership.pepperstone.com/en/affiliates-program/','assumption',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_pepperstone_2','pf_pepperstone','countries','Availability and commission terms depend on the applicable programme and country; UK participation not confirmed.','https://partnership.pepperstone.com/en/affiliates-program/','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_pepperstone_3','pf_pepperstone','traffic_sources','Approved marketing channels unknown.','https://partnership.pepperstone.com/en/affiliates-program/','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_plus500_1','pf_plus500','programme_model','Commercial model and current commission terms unknown until the current official rules are reviewed.','https://www.500affiliates.com/','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_plus500_2','pf_plus500','countries','UK affiliate eligibility and UK customer eligibility not confirmed.','https://www.500affiliates.com/','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_plus500_3','pf_plus500','traffic_sources','Approved traffic sources and compliance requirements not confirmed.','https://www.500affiliates.com/','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_trading212_1','pf_trading212','programme_model','Publishers are invited to contact the partnerships team; no public rate card.','https://helpcentre.trading212.com/hc/en-us/articles/360008095077-How-can-I-become-a-Trading-212-Affiliate','assumption',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_research (id,firm_id,topic,claim,source_url,verification,verified_at,notes) VALUES ('pr_trading212_2','pf_trading212','eligibility','Acceptance is at Trading 212''s discretion; eligibility criteria not published.','https://helpcentre.trading212.com/hc/en-us/articles/360008095077-How-can-I-become-a-Trading-212-Affiliate','open_question',NULL,'Seeded 2026-10-21; not yet verified against the source.') ON CONFLICT DO NOTHING;
+INSERT INTO partner_applications (id,firm_id,checklist,documents) VALUES ('pa_axi','pf_axi','[{"label":"Confirm the correct legal entity to contract (sole trader now; company after incorporation)","done":false},{"label":"Website audit against the programme''s publisher requirements","done":false},{"label":"Prepare audience and traffic description (education-first, UK)","done":false},{"label":"Prepare affiliate-disclosure and risk-warning wording","done":false},{"label":"Identify every channel to be approved (website, social, email, paid, community)","done":false},{"label":"Record official contact route and reference","done":false}]'::jsonb,'[{"label":"Proof of identity (reference to secure store only)","locationRef":"","done":false},{"label":"Proof of address (reference to secure store only)","locationRef":"","done":false},{"label":"Company registration certificate (after incorporation)","locationRef":"","done":false},{"label":"Bank / payout details (reference to secure store only)","locationRef":"","done":false},{"label":"Tax form if required (e.g. W-8BEN)","locationRef":"","done":false}]'::jsonb) ON CONFLICT DO NOTHING;
+INSERT INTO partner_applications (id,firm_id,checklist,documents) VALUES ('pa_ig','pf_ig','[{"label":"Confirm the correct legal entity to contract (sole trader now; company after incorporation)","done":false},{"label":"Website audit against the programme''s publisher requirements","done":false},{"label":"Prepare audience and traffic description (education-first, UK)","done":false},{"label":"Prepare affiliate-disclosure and risk-warning wording","done":false},{"label":"Identify every channel to be approved (website, social, email, paid, community)","done":false},{"label":"Record official contact route and reference","done":false}]'::jsonb,'[{"label":"Proof of identity (reference to secure store only)","locationRef":"","done":false},{"label":"Proof of address (reference to secure store only)","locationRef":"","done":false},{"label":"Company registration certificate (after incorporation)","locationRef":"","done":false},{"label":"Bank / payout details (reference to secure store only)","locationRef":"","done":false},{"label":"Tax form if required (e.g. W-8BEN)","locationRef":"","done":false}]'::jsonb) ON CONFLICT DO NOTHING;
+INSERT INTO partner_applications (id,firm_id,checklist,documents) VALUES ('pa_pepperstone','pf_pepperstone','[{"label":"Confirm the correct legal entity to contract (sole trader now; company after incorporation)","done":false},{"label":"Website audit against the programme''s publisher requirements","done":false},{"label":"Prepare audience and traffic description (education-first, UK)","done":false},{"label":"Prepare affiliate-disclosure and risk-warning wording","done":false},{"label":"Identify every channel to be approved (website, social, email, paid, community)","done":false},{"label":"Record official contact route and reference","done":false}]'::jsonb,'[{"label":"Proof of identity (reference to secure store only)","locationRef":"","done":false},{"label":"Proof of address (reference to secure store only)","locationRef":"","done":false},{"label":"Company registration certificate (after incorporation)","locationRef":"","done":false},{"label":"Bank / payout details (reference to secure store only)","locationRef":"","done":false},{"label":"Tax form if required (e.g. W-8BEN)","locationRef":"","done":false}]'::jsonb) ON CONFLICT DO NOTHING;
+INSERT INTO partner_applications (id,firm_id,checklist,documents) VALUES ('pa_plus500','pf_plus500','[{"label":"Confirm the correct legal entity to contract (sole trader now; company after incorporation)","done":false},{"label":"Website audit against the programme''s publisher requirements","done":false},{"label":"Prepare audience and traffic description (education-first, UK)","done":false},{"label":"Prepare affiliate-disclosure and risk-warning wording","done":false},{"label":"Identify every channel to be approved (website, social, email, paid, community)","done":false},{"label":"Record official contact route and reference","done":false}]'::jsonb,'[{"label":"Proof of identity (reference to secure store only)","locationRef":"","done":false},{"label":"Proof of address (reference to secure store only)","locationRef":"","done":false},{"label":"Company registration certificate (after incorporation)","locationRef":"","done":false},{"label":"Bank / payout details (reference to secure store only)","locationRef":"","done":false},{"label":"Tax form if required (e.g. W-8BEN)","locationRef":"","done":false}]'::jsonb) ON CONFLICT DO NOTHING;
+INSERT INTO partner_applications (id,firm_id,checklist,documents) VALUES ('pa_trading212','pf_trading212','[{"label":"Confirm the correct legal entity to contract (sole trader now; company after incorporation)","done":false},{"label":"Website audit against the programme''s publisher requirements","done":false},{"label":"Prepare audience and traffic description (education-first, UK)","done":false},{"label":"Prepare affiliate-disclosure and risk-warning wording","done":false},{"label":"Identify every channel to be approved (website, social, email, paid, community)","done":false},{"label":"Record official contact route and reference","done":false}]'::jsonb,'[{"label":"Proof of identity (reference to secure store only)","locationRef":"","done":false},{"label":"Proof of address (reference to secure store only)","locationRef":"","done":false},{"label":"Company registration certificate (after incorporation)","locationRef":"","done":false},{"label":"Bank / payout details (reference to secure store only)","locationRef":"","done":false},{"label":"Tax form if required (e.g. W-8BEN)","locationRef":"","done":false}]'::jsonb) ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_cpa_amount','pf_axi','cpa_amount','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_cpa_conditions','pf_axi','cpa_conditions','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_revshare_pct','pf_axi','revshare_pct','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_revshare_basis','pf_axi','revshare_basis','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_hybrid_rules','pf_axi','hybrid_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_ib_terms','pf_axi','ib_terms','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_min_deposit','pf_axi','min_deposit','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_min_trading','pf_axi','min_trading','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_account_verification','pf_axi','account_verification','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_qualification_deadline','pf_axi','qualification_deadline','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_tracking_window','pf_axi','tracking_window','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_payment_frequency','pf_axi','payment_frequency','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_min_payout','pf_axi','min_payout','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_clawback_rules','pf_axi','clawback_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_attribution_rules','pf_axi','attribution_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_permitted_traffic','pf_axi','permitted_traffic','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_country_rates','pf_axi','country_rates','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_contract_start','pf_axi','contract_start','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_contract_end','pf_axi','contract_end','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_terms_confirmed_at','pf_axi','terms_confirmed_at','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_axi_agreement_ref','pf_axi','agreement_ref','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_cpa_amount','pf_ig','cpa_amount','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_cpa_conditions','pf_ig','cpa_conditions','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_revshare_pct','pf_ig','revshare_pct','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_revshare_basis','pf_ig','revshare_basis','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_hybrid_rules','pf_ig','hybrid_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_ib_terms','pf_ig','ib_terms','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_min_deposit','pf_ig','min_deposit','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_min_trading','pf_ig','min_trading','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_account_verification','pf_ig','account_verification','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_qualification_deadline','pf_ig','qualification_deadline','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_tracking_window','pf_ig','tracking_window','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_payment_frequency','pf_ig','payment_frequency','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_min_payout','pf_ig','min_payout','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_clawback_rules','pf_ig','clawback_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_attribution_rules','pf_ig','attribution_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_permitted_traffic','pf_ig','permitted_traffic','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_country_rates','pf_ig','country_rates','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_contract_start','pf_ig','contract_start','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_contract_end','pf_ig','contract_end','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_terms_confirmed_at','pf_ig','terms_confirmed_at','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_ig_agreement_ref','pf_ig','agreement_ref','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_cpa_amount','pf_pepperstone','cpa_amount','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_cpa_conditions','pf_pepperstone','cpa_conditions','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_revshare_pct','pf_pepperstone','revshare_pct','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_revshare_basis','pf_pepperstone','revshare_basis','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_hybrid_rules','pf_pepperstone','hybrid_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_ib_terms','pf_pepperstone','ib_terms','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_min_deposit','pf_pepperstone','min_deposit','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_min_trading','pf_pepperstone','min_trading','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_account_verification','pf_pepperstone','account_verification','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_qualification_deadline','pf_pepperstone','qualification_deadline','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_tracking_window','pf_pepperstone','tracking_window','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_payment_frequency','pf_pepperstone','payment_frequency','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_min_payout','pf_pepperstone','min_payout','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_clawback_rules','pf_pepperstone','clawback_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_attribution_rules','pf_pepperstone','attribution_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_permitted_traffic','pf_pepperstone','permitted_traffic','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_country_rates','pf_pepperstone','country_rates','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_contract_start','pf_pepperstone','contract_start','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_contract_end','pf_pepperstone','contract_end','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_terms_confirmed_at','pf_pepperstone','terms_confirmed_at','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_pepperstone_agreement_ref','pf_pepperstone','agreement_ref','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_cpa_amount','pf_plus500','cpa_amount','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_cpa_conditions','pf_plus500','cpa_conditions','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_revshare_pct','pf_plus500','revshare_pct','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_revshare_basis','pf_plus500','revshare_basis','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_hybrid_rules','pf_plus500','hybrid_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_ib_terms','pf_plus500','ib_terms','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_min_deposit','pf_plus500','min_deposit','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_min_trading','pf_plus500','min_trading','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_account_verification','pf_plus500','account_verification','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_qualification_deadline','pf_plus500','qualification_deadline','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_tracking_window','pf_plus500','tracking_window','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_payment_frequency','pf_plus500','payment_frequency','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_min_payout','pf_plus500','min_payout','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_clawback_rules','pf_plus500','clawback_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_attribution_rules','pf_plus500','attribution_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_permitted_traffic','pf_plus500','permitted_traffic','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_country_rates','pf_plus500','country_rates','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_contract_start','pf_plus500','contract_start','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_contract_end','pf_plus500','contract_end','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_terms_confirmed_at','pf_plus500','terms_confirmed_at','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_plus500_agreement_ref','pf_plus500','agreement_ref','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_cpa_amount','pf_trading212','cpa_amount','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_cpa_conditions','pf_trading212','cpa_conditions','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_revshare_pct','pf_trading212','revshare_pct','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_revshare_basis','pf_trading212','revshare_basis','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_hybrid_rules','pf_trading212','hybrid_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_ib_terms','pf_trading212','ib_terms','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_min_deposit','pf_trading212','min_deposit','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_min_trading','pf_trading212','min_trading','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_account_verification','pf_trading212','account_verification','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_qualification_deadline','pf_trading212','qualification_deadline','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_tracking_window','pf_trading212','tracking_window','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_payment_frequency','pf_trading212','payment_frequency','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_min_payout','pf_trading212','min_payout','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_clawback_rules','pf_trading212','clawback_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_attribution_rules','pf_trading212','attribution_rules','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_permitted_traffic','pf_trading212','permitted_traffic','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_country_rates','pf_trading212','country_rates','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_contract_start','pf_trading212','contract_start','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_contract_end','pf_trading212','contract_end','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_terms_confirmed_at','pf_trading212','terms_confirmed_at','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_term_items (id,firm_id,key,status) VALUES ('pt_trading212_agreement_ref','pf_trading212','agreement_ref','unverified') ON CONFLICT DO NOTHING;
+INSERT INTO partner_compliance (id,firm_id,permitted_to_promote,legal_advice_required,open_questions) VALUES ('pc_axi','pf_axi','unknown',true,'Is Ten Talents (not FCA-authorised) permitted to communicate this firm''s financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?') ON CONFLICT DO NOTHING;
+INSERT INTO partner_compliance (id,firm_id,permitted_to_promote,legal_advice_required,open_questions) VALUES ('pc_ig','pf_ig','unknown',true,'Is Ten Talents (not FCA-authorised) permitted to communicate this firm''s financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?') ON CONFLICT DO NOTHING;
+INSERT INTO partner_compliance (id,firm_id,permitted_to_promote,legal_advice_required,open_questions) VALUES ('pc_pepperstone','pf_pepperstone','unknown',true,'Is Ten Talents (not FCA-authorised) permitted to communicate this firm''s financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?') ON CONFLICT DO NOTHING;
+INSERT INTO partner_compliance (id,firm_id,permitted_to_promote,legal_advice_required,open_questions) VALUES ('pc_plus500','pf_plus500','unknown',true,'Is Ten Talents (not FCA-authorised) permitted to communicate this firm''s financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?') ON CONFLICT DO NOTHING;
+INSERT INTO partner_compliance (id,firm_id,permitted_to_promote,legal_advice_required,open_questions) VALUES ('pc_trading212','pf_trading212','unknown',true,'Is Ten Talents (not FCA-authorised) permitted to communicate this firm''s financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_axi_website','pf_axi','website','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_axi_social','pf_axi','social','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_axi_email','pf_axi','email','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_axi_paid_ads','pf_axi','paid_ads','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_axi_webinar_community','pf_axi','webinar_community','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_ig_website','pf_ig','website','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_ig_social','pf_ig','social','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_ig_email','pf_ig','email','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_ig_paid_ads','pf_ig','paid_ads','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_ig_webinar_community','pf_ig','webinar_community','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_pepperstone_website','pf_pepperstone','website','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_pepperstone_social','pf_pepperstone','social','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_pepperstone_email','pf_pepperstone','email','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_pepperstone_paid_ads','pf_pepperstone','paid_ads','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_pepperstone_webinar_community','pf_pepperstone','webinar_community','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_plus500_website','pf_plus500','website','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_plus500_social','pf_plus500','social','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_plus500_email','pf_plus500','email','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_plus500_paid_ads','pf_plus500','paid_ads','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_plus500_webinar_community','pf_plus500','webinar_community','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_trading212_website','pf_trading212','website','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_trading212_social','pf_trading212','social','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_trading212_email','pf_trading212','email','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_trading212_paid_ads','pf_trading212','paid_ads','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_channel_approvals (id,firm_id,channel,status) VALUES ('pch_trading212_webinar_community','pf_trading212','webinar_community','not_reviewed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_axi_1','pf_axi','Review the UK affiliate programme page and record verified facts','Kelvin Williams','high','2026-10-28') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_axi_2','pf_axi','Request the current rate card and qualification rules in writing','Kelvin Williams','high','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_axi_3','pf_axi','Ask which promotional channels can be approved','Kelvin Williams','normal','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_ig_1','pf_ig','Read the IG publisher requirements page and record each requirement','Kelvin Williams','high','2026-10-28') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_ig_2','pf_ig','Audit the website and app against IG''s requirements; list gaps','Kelvin Williams','high','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_ig_3','pf_ig','Write the affiliate commission disclosure for the site','Kelvin Williams','normal','2026-11-11') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_pepperstone_1','pf_pepperstone','Confirm UK affiliate participation in writing','Kelvin Williams','high','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_pepperstone_2','pf_pepperstone','Request current CPA terms and qualification rules','Kelvin Williams','high','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_pepperstone_3','pf_pepperstone','Ask separately about IB terms and requirements','Kelvin Williams','normal','2026-11-11') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_plus500_1','pf_plus500','Review the current official 500Affiliates programme rules','Kelvin Williams','high','2026-10-28') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_plus500_2','pf_plus500','Confirm UK affiliate and UK customer eligibility in writing','Kelvin Williams','high','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_plus500_3','pf_plus500','Request commission terms, qualification rules, traffic sources and compliance requirements','Kelvin Williams','normal','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_trading212_1','pf_trading212','Draft the partnership enquiry (mission, audience, site, content, channels)','Kelvin Williams','high','2026-10-31') ON CONFLICT DO NOTHING;
+INSERT INTO partner_tasks (id,firm_id,title,owner,priority,due_at) VALUES ('pk_trading212_2','pf_trading212','Send the enquiry via the official route and log the correspondence','Kelvin Williams','normal','2026-11-04') ON CONFLICT DO NOTHING;
+INSERT INTO partner_audit (id,firm_id,entity,entity_id,field,old_value,new_value,actor) VALUES ('pau_axi','pf_axi','firm','pf_axi','created','','seeded as prospect (2026-10-21)','seed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_audit (id,firm_id,entity,entity_id,field,old_value,new_value,actor) VALUES ('pau_ig','pf_ig','firm','pf_ig','created','','seeded as prospect (2026-10-21)','seed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_audit (id,firm_id,entity,entity_id,field,old_value,new_value,actor) VALUES ('pau_pepperstone','pf_pepperstone','firm','pf_pepperstone','created','','seeded as prospect (2026-10-21)','seed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_audit (id,firm_id,entity,entity_id,field,old_value,new_value,actor) VALUES ('pau_plus500','pf_plus500','firm','pf_plus500','created','','seeded as prospect (2026-10-21)','seed') ON CONFLICT DO NOTHING;
+INSERT INTO partner_audit (id,firm_id,entity,entity_id,field,old_value,new_value,actor) VALUES ('pau_trading212','pf_trading212','firm','pf_trading212','created','','seeded as prospect (2026-10-21)','seed') ON CONFLICT DO NOTHING;
+
+-- Done. To verify, run:  SELECT count(*) FROM lessons;  -- expect 17.  SELECT count(*) FROM partner_firms;  -- expect 5

@@ -78,3 +78,50 @@ run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both
 - Admin at `/admin` (password: `ADMIN_PASSWORD`): tracks/modules/lessons
   create/edit/reorder/publish, TipTap editor with image upload + video embed,
   quiz builder, glossary, member list. Lesson HTML is sanitised server-side.
+
+## Affiliate partnerships (internal admin module, Oct 2026)
+
+Internal operations tool at `/admin/partners` (same `ADMIN_PASSWORD` gate as the
+rest of admin; every page and API route checks `isAdmin()` server-side and
+returns a redirect / `401` otherwise). Nothing in it is customer-facing and it
+never moves money. It tracks five **prospective** broker affiliate programmes:
+Axi, IG, Pepperstone, Plus500 / 500Affiliates and Trading 212.
+
+- **Three independent status axes** per firm, stored as separate columns and
+  validated as separate enums: application status, commercial-terms status,
+  compliance status. An approved application never implies confirmed terms or
+  compliance approval. Labels are deliberately neutral (no traffic-light colours).
+- **Firm workspace** tabs: Overview · Research & eligibility (each claim has a
+  source URL + `assumption` / `verified` / `open_question` state) · Application
+  (checklist, document *references* only, submission date/reference/outcome,
+  contacts) · Commercial terms (21 fixed term keys, each with its own value,
+  source, status and verified-on date; `confirmed` requires a source) ·
+  Compliance (permitted-to-promote, contracting entity, restrictions, risk
+  warnings, disclosure wording, legal-review flag, and one approval record per
+  channel: website / social / email / paid ads / webinar-community; `Approved
+  for Specified Use` requires a content reference) · Communications & tasks ·
+  Performance & payments · Audit trail.
+- **Performance & payments is locked** unless `applicationStatus = approved`
+  (API returns `409`). Figures are manual aggregates with a mandatory source
+  note; the commission ledger is append-only (pence-exact) and shows pending,
+  approved, reversed and paid separately. No live tracking is implied.
+- **Audit trail**: status, commercial-value, compliance and ledger changes are
+  written to `partner_audit` with before/after values and the actor.
+- **Rules enforced server-side** (`src/app/api/admin/partners/[id]/route.ts`):
+  enum whitelists → `400`; child rows must belong to the firm → `404`;
+  firm `termsStatus = confirmed` needs ≥1 confirmed term → `409`; comm entries
+  bump `lastContactAt`; firms cannot be created/deleted through the API.
+- **Data**: migration `drizzle/0004_partners.sql` adds `partner_firms`,
+  `partner_research`, `partner_contacts`, `partner_applications`,
+  `partner_term_items`, `partner_compliance`, `partner_channel_approvals`,
+  `partner_comms`, `partner_tasks`, `partner_reports`, `partner_ledger`,
+  `partner_audit`. `db:setup` (and therefore every Vercel build) applies it and
+  seeds the five firms **insert-if-missing** — dashboard edits are never
+  overwritten. The Neon SQL files at the repo root carry the same seed.
+- **Seed is provisional**: statuses Researching / Unverified / Not Reviewed,
+  research claims marked `assumption` dated 2026-10-21 (official pages were not
+  re-checked from the build environment), no submissions, no terms, no approvals.
+- **Boundaries**: no broker integrations, scraping or portal automation; no
+  secrets in the repo (logo/programme URLs are public); document fields hold
+  references to secure locations, never the documents; the actor is the shared
+  admin session (per-user roles are a follow-up).

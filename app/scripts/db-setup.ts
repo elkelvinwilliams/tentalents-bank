@@ -3,6 +3,7 @@
    Run: npm run db:setup  */
 import { db, tables } from "../src/db";
 import { TRACKS, GLOSSARY } from "../src/content/seed-data";
+import { seedPartners } from "../src/lib/partners-data";
 import { sql } from "drizzle-orm";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -54,6 +55,8 @@ async function seed() {
       .onConflictDoUpdate({ target: tables.glossaryTerms.id, set: { term, definition, position: gi } });
   }
   console.log("seeded: tracks", TRACKS.length, "· glossary", GLOSSARY.length);
+  const firms = await seedPartners();
+  console.log("partners: seeded", firms, "new prospect(s); existing records untouched");
 }
 
 migrate().then(seed).then(() => { console.log("db ready"); process.exit(0); })

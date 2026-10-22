@@ -295,6 +295,193 @@ export const simEquity = pgTable("sim_equity", {
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("sim_equity_user_idx").on(t.userId)]);
 
+/* ---------- affiliate partnerships (INTERNAL operations; admin-only; no customer data) ---------- */
+
+export const partnerFirms = pgTable("partner_firms", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull(),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  programmeUrl: text("programme_url").notNull().default(""),
+  applyUrl: text("apply_url").notNull().default(""),
+  requirementsUrl: text("requirements_url").notNull().default(""),
+  model: text("model").notNull().default("enquiry_pending"),            // cpa | revenue_share | hybrid | ib | enquiry_pending
+  applicationStatus: text("application_status").notNull().default("not_started"),
+  termsStatus: text("terms_status").notNull().default("unverified"),
+  complianceStatus: text("compliance_status").notNull().default("not_reviewed"),
+  countryEligibility: text("country_eligibility").notNull().default("unknown"), // unknown | eligible | conditional | ineligible
+  countryNote: text("country_note").notNull().default(""),
+  targetCountries: jsonb("target_countries").$type<string[]>().notNull().default([]),
+  owner: text("owner").notNull().default(""),
+  nextAction: text("next_action").notNull().default(""),
+  nextActionDue: text("next_action_due"),      // YYYY-MM-DD
+  lastContactAt: text("last_contact_at"),      // YYYY-MM-DD
+  lastResearchAt: text("last_research_at"),    // YYYY-MM-DD
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("partner_firms_slug_uq").on(t.slug)]);
+
+export const partnerResearch = pgTable("partner_research", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  topic: text("topic").notNull().default("other"),
+  claim: text("claim").notNull().default(""),
+  sourceUrl: text("source_url").notNull().default(""),
+  verification: text("verification").notNull().default("assumption"), // assumption | verified | open_question
+  verifiedAt: text("verified_at"),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_research_firm_idx").on(t.firmId)]);
+
+export const partnerContacts = pgTable("partner_contacts", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  name: text("name").notNull().default(""),
+  role: text("role").notNull().default(""),
+  email: text("email").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_contacts_firm_idx").on(t.firmId)]);
+
+export type ChecklistItem = { label: string; done: boolean };
+export type DocRef = { label: string; locationRef: string; done: boolean }; // reference to a secure location, never the document itself
+
+export const partnerApplications = pgTable("partner_applications", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  checklist: jsonb("checklist").$type<ChecklistItem[]>().notNull().default([]),
+  documents: jsonb("documents").$type<DocRef[]>().notNull().default([]),
+  submittedAt: text("submitted_at"),
+  referenceNo: text("reference_no").notNull().default(""),
+  contactId: text("contact_id"),
+  followUpAt: text("follow_up_at"),
+  outcome: text("outcome").notNull().default(""),
+  outcomeReason: text("outcome_reason").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("partner_applications_firm_uq").on(t.firmId)]);
+
+/* Each commercial value carries its own source and verification status. */
+export const partnerTermItems = pgTable("partner_term_items", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  key: text("key").notNull(),
+  value: text("value").notNull().default(""),
+  currency: text("currency").notNull().default(""),
+  sourceUrl: text("source_url").notNull().default(""),
+  sourceNote: text("source_note").notNull().default(""),
+  status: text("status").notNull().default("unverified"), // mirrors TERMS_STATUS per value
+  verifiedAt: text("verified_at"),
+  notes: text("notes").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("partner_term_items_uq").on(t.firmId, t.key)]);
+
+export const partnerCompliance = pgTable("partner_compliance", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  permittedToPromote: text("permitted_to_promote").notNull().default("unknown"), // unknown | yes | no | conditional
+  contractingEntity: text("contracting_entity").notNull().default(""),
+  restrictions: text("restrictions").notNull().default(""),
+  riskWarnings: text("risk_warnings").notNull().default(""),
+  disclosureWording: text("disclosure_wording").notNull().default(""),
+  openQuestions: text("open_questions").notNull().default(""),
+  legalAdviceRequired: boolean("legal_advice_required").notNull().default(false),
+  notes: text("notes").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("partner_compliance_firm_uq").on(t.firmId)]);
+
+export const partnerChannelApprovals = pgTable("partner_channel_approvals", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  channel: text("channel").notNull(), // website | social | email | paid_ads | webinar_community
+  status: text("status").notNull().default("not_reviewed"), // COMPLIANCE_STATUS
+  contentRef: text("content_ref").notNull().default(""),
+  version: text("version").notNull().default(""),
+  approvedAt: text("approved_at"),
+  reviewAt: text("review_at"),
+  notes: text("notes").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("partner_channel_uq").on(t.firmId, t.channel)]);
+
+export const partnerComms = pgTable("partner_comms", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  at: text("at").notNull(),
+  kind: text("kind").notNull().default("email"),
+  contactName: text("contact_name").notNull().default(""),
+  summary: text("summary").notNull().default(""),
+  commitments: text("commitments").notNull().default(""),
+  questionsOpen: text("questions_open").notNull().default(""),
+  nextFollowUp: text("next_follow_up"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_comms_firm_idx").on(t.firmId)]);
+
+export const partnerTasks = pgTable("partner_tasks", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  owner: text("owner").notNull().default(""),
+  dueAt: text("due_at"),
+  priority: text("priority").notNull().default("normal"),
+  status: text("status").notNull().default("open"),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+}, (t) => [index("partner_tasks_firm_idx").on(t.firmId)]);
+
+/* Aggregate performance per period — manual entry unless an official integration exists. */
+export const partnerReports = pgTable("partner_reports", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  periodStart: text("period_start").notNull(),
+  periodEnd: text("period_end").notNull(),
+  impressions: integer("impressions"),
+  clicks: integer("clicks"),
+  registrations: integer("registrations"),
+  verifiedReferrals: integer("verified_referrals"),
+  qualifiedReferrals: integer("qualified_referrals"),
+  pendingMinor: integer("pending_minor"),
+  approvedMinor: integer("approved_minor"),
+  reversedMinor: integer("reversed_minor"),
+  paidMinor: integer("paid_minor"),
+  currency: text("currency").notNull().default("GBP"),
+  expectedPaymentAt: text("expected_payment_at"),
+  paidAt: text("paid_at"),
+  source: text("source").notNull().default("manual"), // manual | export | api
+  sourceNote: text("source_note").notNull().default(""),
+  enteredBy: text("entered_by").notNull().default(""),
+  reconciliationNotes: text("reconciliation_notes").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_reports_firm_idx").on(t.firmId)]);
+
+export const partnerLedger = pgTable("partner_ledger", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  at: text("at").notNull(),
+  kind: text("kind").notNull(), // pending | approved | reversed | paid | adjustment
+  amountMinor: integer("amount_minor").notNull(),
+  currency: text("currency").notNull().default("GBP"),
+  reference: text("reference").notNull().default(""),
+  note: text("note").notNull().default(""),
+  source: text("source").notNull().default("manual"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_ledger_firm_idx").on(t.firmId)]);
+
+export const partnerAudit = pgTable("partner_audit", {
+  id: text("id").primaryKey(),
+  firmId: text("firm_id").notNull().references(() => partnerFirms.id, { onDelete: "cascade" }),
+  entity: text("entity").notNull(),
+  entityId: text("entity_id").notNull().default(""),
+  field: text("field").notNull(),
+  oldValue: text("old_value").notNull().default(""),
+  newValue: text("new_value").notNull().default(""),
+  actor: text("actor").notNull().default("admin"),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("partner_audit_firm_idx").on(t.firmId)]);
+
 export const webhookEvents = pgTable("webhook_events", {
   id: text("id").primaryKey(), // Stripe event id — idempotency
   type: text("type").notNull(),
