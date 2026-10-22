@@ -29,6 +29,13 @@
       "when": 1790318611836,
       "tag": "0003_practise",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792624460898,
+      "tag": "0004_partners",
+      "breakpoints": true
     }
   ]
 }

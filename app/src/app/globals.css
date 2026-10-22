@@ -431,3 +431,73 @@ button,.chip,.tab,.opt,.btn{-webkit-tap-highlight-color:transparent;-webkit-user
 .srow:last-child{border-bottom:0}
 .srow .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold);width:64px;flex:none}
 .srow b{font-weight:600;font-size:14.5px;display:block} .srow .d{font-size:12px;color:var(--faint)}
+
+/* ---------- admin: affiliate partnerships (internal ops) ---------- */
+.adminshell.wide{max-width:1180px}
+.ptnote{margin:14px 0 18px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;font-size:13px;color:var(--muted);line-height:1.55;background:var(--surface)}
+.ptstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+.ptstat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.ptstat .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+.ptstat .v{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em;margin-top:2px}
+.ptstat .d{font-size:12px;color:var(--muted);margin-top:2px}
+.pttools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
+.pttools .afield{margin:0;width:auto;min-width:160px;flex:1;padding:9px 11px;font-size:13.5px}
+.pttools select.afield{flex:none;min-width:150px}
+.ptgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pttile{background:var(--card-bg);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;position:relative}
+.pttile.overdue{border-color:rgba(168,69,44,.45)}
+.pttile .head{display:flex;gap:12px;align-items:center}
+.ptlogo{width:46px;height:46px;border-radius:12px;background:var(--xp-grad);color:var(--gold-bright);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;flex:none;border:1px solid rgba(237,182,113,.3);overflow:hidden}
+.ptlogo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.pttile h3{font-size:17px;letter-spacing:-.015em}
+.pttile .model{font-size:12px;color:var(--muted)}
+.ptrows{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px;align-items:baseline}
+.ptrows .k{color:var(--faint);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.ptrows .v{min-width:0}
+.ptstatus{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:100px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);white-space:nowrap}
+.ptstatus.active{border-color:var(--card-gold-line);background:var(--gold-tint);color:var(--gold)}
+.ptstatus.good{border-color:rgba(31,122,85,.35);color:var(--green);background:transparent}
+.ptstatus.warn{border-color:rgba(154,111,24,.45);color:var(--gold);background:transparent}
+.ptstatus.bad{border-color:rgba(168,69,44,.45);color:var(--red);background:transparent}
+.ptdue{font-size:12px;font-weight:700}
+.ptdue.over{color:var(--red)} .ptdue.soon{color:var(--gold)}
+.pttile .next{font-size:13px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pttile .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:8px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.ptactions{display:grid;gap:0;margin-top:8px}
+.ptaction{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.ptaction:last-child{border-bottom:0}
+.ptaction .when{width:92px;flex:none;font-size:12px;font-weight:700;color:var(--muted)}
+.ptaction .when.over{color:var(--red)}
+.ptaction .firm{color:var(--gold);font-weight:700;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.pttabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 16px}
+.pttabs button{padding:8px 13px;border-radius:100px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:600;color:var(--muted)}
+.pttabs button.on{background:var(--chip-on-bg);color:var(--chip-on-ink);border-color:transparent}
+.ptform{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 16px}
+.ptform .full{grid-column:1/-1}
+.ptfield label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.ptfield .afield{margin:0;padding:9px 11px;font-size:14px}
+.ptfield textarea.afield{min-height:72px;line-height:1.5;resize:vertical}
+.ptfield .hint{font-size:11.5px;color:var(--faint);margin-top:4px;line-height:1.45}
+.ptsec{margin:22px 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ptsec h2{font-size:17px}
+.ptsec .sub{font-size:12.5px;color:var(--muted)}
+.ptcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.ptcard.muted{opacity:.85}
+.ptkv{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:6px 14px;font-size:13.5px;align-items:baseline}
+.ptkv .k{color:var(--muted);font-weight:600}
+.ptempty{padding:28px 18px;text-align:center;border:1px dashed var(--line-2);border-radius:14px;color:var(--muted);font-size:13.5px;line-height:1.55}
+.ptsaved{font-size:12px;color:var(--green);font-weight:700;min-height:16px}
+.ptsaved.err{color:var(--red)}
+.pttable{width:100%;border-collapse:collapse;font-size:13px}
+.pttable th{text-align:left;color:var(--faint);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.pttable td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.pttable .afield{margin:0;padding:7px 9px;font-size:13px}
+.pttable tr:last-child td{border-bottom:0}
+.ptwrap{overflow-x:auto}
+.ptcheck{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.ptcheck:last-child{border-bottom:0}
+.ptcheck input[type=checkbox]{margin-top:3px;accent-color:#9a6f18}
+.ptcheck .afield{margin:0;padding:6px 9px;font-size:13px}
+.ptaudit{font-size:12.5px}
+.ptaudit td{white-space:normal;word-break:break-word}
+@media (max-width:640px){.ptkv{grid-template-columns:1fr}.ptrows{grid-template-columns:auto 1fr}.adminshell{padding:20px 14px 60px}}
