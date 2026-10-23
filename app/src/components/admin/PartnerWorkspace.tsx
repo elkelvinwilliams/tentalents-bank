@@ -64,7 +64,7 @@ export default function PartnerWorkspace({ ws }: { ws: Workspace }) {
       <div className="ptnote">The three statuses are independent. Approved application ≠ confirmed terms ≠ compliance approval. Change a status only when the evidence for it is recorded in the matching section.</div>
       <div className="ptform">
         <F label="Company name"><Txt value={firm.name} onSave={(v) => firmUp({ name: v })} /></F>
-        <F label="Logo URL" hint="Optional. Leave blank for the text fallback."><Txt value={firm.logoUrl} onSave={(v) => firmUp({ logoUrl: v || null })} placeholder="https://" /></F>
+        <F label="Logo URL" hint="Optional. Blank = derived logo (if configured) or initials; type none to force the initials."><Txt value={firm.logoUrl} onSave={(v) => firmUp({ logoUrl: v || null })} placeholder="https://" /></F>
         <F label="Official programme URL"><Txt value={firm.programmeUrl} onSave={(v) => firmUp({ programmeUrl: v })} placeholder="https://" /></F>
         <F label="Official application / contact route"><Txt value={firm.applyUrl} onSave={(v) => firmUp({ applyUrl: v })} placeholder="https:// or 'email partnerships@…'" /></F>
         <F label="Requirements page URL"><Txt value={firm.requirementsUrl} onSave={(v) => firmUp({ requirementsUrl: v })} placeholder="https://" /></F>

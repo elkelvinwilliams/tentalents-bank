@@ -64,6 +64,7 @@ export function brandDomain(url: string | null | undefined): string | null {
   } catch { return null; }
 }
 export function logoFor(f: { logoUrl: string | null; programmeUrl: string | null }): string | null {
+  if (f.logoUrl === "none") return null; // explicit opt-out: show initials even when a key is configured
   if (f.logoUrl) return f.logoUrl;
   const key = process.env.LOGO_DEV_KEY; const d = brandDomain(f.programmeUrl);
   return key && d ? `https://img.logo.dev/${d}?token=${encodeURIComponent(key)}&size=150&format=webp&retina=true` : null;
