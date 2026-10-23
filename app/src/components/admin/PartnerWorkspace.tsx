@@ -5,7 +5,7 @@
 import { useState, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Workspace } from "@/lib/partners-data";
-import { APPLICATION_STATUS, TERMS_STATUS, COMPLIANCE_STATUS, MODEL, COUNTRY_ELIGIBILITY, PERMITTED, RESEARCH_TOPICS, VERIFICATION, TERM_KEYS, CHANNELS, COMM_KIND, TASK_PRIORITY, TASK_STATUS, LEDGER_KIND, REPORT_SOURCE, label, fmtDate, overdue, money } from "@/lib/partners";
+import { APPLICATION_STATUS, TERMS_STATUS, COMPLIANCE_STATUS, MODEL, COUNTRY_ELIGIBILITY, PERMITTED, RESEARCH_TOPICS, VERIFICATION, TERM_KEYS, CHANNELS, COMM_KIND, TASK_PRIORITY, TASK_STATUS, LEDGER_KIND, REPORT_SOURCE, label, commLabel, COMM_LABEL, fmtDate, overdue, money } from "@/lib/partners";
 import { Status, Logo } from "./PartnersOverview";
 
 type Tab = "overview" | "research" | "application" | "terms" | "compliance" | "comms" | "performance" | "audit";
@@ -220,7 +220,7 @@ function CommsTasks({ ws, save }: { ws: Workspace; save: Save }) {
     <div className="ptcard">
       <div className="ptform">
         <F label="Date"><input className="afield" type="date" value={c.at} onChange={(e) => setC({ ...c, at: e.target.value })} /></F>
-        <F label="Type"><Sel value={c.kind} options={COMM_KIND} onSave={(v) => setC({ ...c, kind: v })} /></F>
+        <F label="Type"><Sel value={c.kind} options={COMM_KIND.map((k) => [k, COMM_LABEL[k]] as [string, string])} onSave={(v) => setC({ ...c, kind: v })} /></F>
         <F label="Contact person"><input className="afield" value={c.contactName} onChange={(e) => setC({ ...c, contactName: e.target.value })} /></F>
         <F label="Next follow-up"><input className="afield" type="date" value={c.nextFollowUp} onChange={(e) => setC({ ...c, nextFollowUp: e.target.value })} /></F>
         <F label="Summary" full><textarea className="afield" rows={2} value={c.summary} onChange={(e) => setC({ ...c, summary: e.target.value })} /></F>
@@ -231,7 +231,7 @@ function CommsTasks({ ws, save }: { ws: Workspace; save: Save }) {
     </div>
     {ws.comms.length ? ws.comms.map((m) => (
       <div key={m.id} className="ptcard">
-        <div className="between"><b>{fmtDate(m.at)} · {label(m.kind)}{m.contactName ? ` · ${m.contactName}` : ""}</b><button className="abtn danger" onClick={() => window.confirm("Delete this entry?") && save("comm", "delete", m.id)}>×</button></div>
+        <div className="between"><b>{fmtDate(m.at)} · {commLabel(m.kind)}{m.contactName ? ` · ${m.contactName}` : ""}</b><button className="abtn danger" onClick={() => window.confirm("Delete this entry?") && save("comm", "delete", m.id)}>×</button></div>
         <div className="ptkv" style={{ marginTop: 8 }}><span className="k">Summary</span><span>{m.summary}</span>{m.commitments && <><span className="k">Commitments</span><span>{m.commitments}</span></>}{m.questionsOpen && <><span className="k">Awaiting answers</span><span>{m.questionsOpen}</span></>}{m.nextFollowUp && <><span className="k">Next follow-up</span><span className={overdue(m.nextFollowUp) ? "ptdue over" : ""}>{fmtDate(m.nextFollowUp)}</span></>}</div>
       </div>
     )) : <div className="ptempty">No correspondence logged.</div>}
