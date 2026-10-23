@@ -44,7 +44,7 @@ export default function PartnerWorkspace({ ws }: { ws: Workspace }) {
 
   return (<>
     <div className="row" style={{ gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
-      <Logo name={firm.name} url={firm.logoUrl} />
+      <Logo name={firm.name} url={ws.logoSrc} />
       <div style={{ flex: 1, minWidth: 240 }}>
         <h1 style={{ fontSize: 24 }}>{firm.name}</h1>
         <div className="sub" style={{ marginTop: 2 }}>{label(firm.model)} · Owner {firm.owner || "—"} · Research {fmtDate(firm.lastResearchAt)} · {firm.programmeUrl ? <a href={firm.programmeUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold)" }}>Official programme page ↗</a> : "no programme URL"}</div>

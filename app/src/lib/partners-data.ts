@@ -51,6 +51,25 @@ export async function seedPartners() {
   return created;
 }
 
+/* Firm logos: an explicit logoUrl wins; otherwise, when LOGO_DEV_KEY is configured, derive the logo from the
+   firm's official domain via Logo.dev (publishable key, admin pages only). Null → initials fallback. */
+export function brandDomain(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    const p = host.split(".");
+    if (p.length <= 2) return host;
+    const second = p[p.length - 2], tld = p[p.length - 1];
+    return (tld.length === 2 && ["co", "com", "org", "net", "ac", "gov"].includes(second)) ? p.slice(-3).join(".") : p.slice(-2).join(".");
+  } catch { return null; }
+}
+export function logoFor(f: { logoUrl: string | null; programmeUrl: string | null }): string | null {
+  if (f.logoUrl) return f.logoUrl;
+  const key = process.env.LOGO_DEV_KEY; const d = brandDomain(f.programmeUrl);
+  return key && d ? `https://img.logo.dev/${d}?token=${encodeURIComponent(key)}&size=150&format=webp&retina=true` : null;
+}
+export const logoAttribution = () => !!process.env.LOGO_DEV_KEY;
+
 export type FirmSummary = typeof tables.partnerFirms.$inferSelect & { openTasks: number; overdueTasks: number; nextTaskDue: string | null; primaryContact: string | null; flags: { overdue: boolean; dueSoon: boolean } };
 
 export async function listFirms(): Promise<FirmSummary[]> {
@@ -60,7 +79,7 @@ export async function listFirms(): Promise<FirmSummary[]> {
   return firms.map((f) => {
     const mine = tasks.filter((t) => t.firmId === f.id);
     const dues = mine.map((t) => t.dueAt).filter((d): d is string => !!d).sort();
-    return { ...f, openTasks: mine.length, overdueTasks: mine.filter((t) => overdue(t.dueAt, t.status)).length, nextTaskDue: dues[0] ?? null, primaryContact: contacts.find((c) => c.firmId === f.id)?.name ?? null, flags: { overdue: overdue(f.nextActionDue) || mine.some((t) => overdue(t.dueAt, t.status)), dueSoon: dueSoon(f.nextActionDue) } };
+    return { ...f, logoUrl: logoFor(f), openTasks: mine.length, overdueTasks: mine.filter((t) => overdue(t.dueAt, t.status)).length, nextTaskDue: dues[0] ?? null, primaryContact: contacts.find((c) => c.firmId === f.id)?.name ?? null, flags: { overdue: overdue(f.nextActionDue) || mine.some((t) => overdue(t.dueAt, t.status)), dueSoon: dueSoon(f.nextActionDue) } };
   });
 }
 
@@ -82,7 +101,7 @@ export async function loadWorkspace(idOrSlug: string) {
     db.select().from(tables.partnerLedger).where(eq(tables.partnerLedger.firmId, id)).orderBy(desc(tables.partnerLedger.at), desc(tables.partnerLedger.createdAt)),
     db.select().from(tables.partnerAudit).where(eq(tables.partnerAudit.firmId, id)).orderBy(desc(tables.partnerAudit.at)).limit(200),
   ]);
-  return { firm, research, contacts, application: application[0] ?? null, terms, compliance: compliance[0] ?? null, channels, comms, tasks, reports, ledger, audit };
+  return { firm, logoSrc: logoFor(firm), research, contacts, application: application[0] ?? null, terms, compliance: compliance[0] ?? null, channels, comms, tasks, reports, ledger, audit };
 }
 export type Workspace = NonNullable<Awaited<ReturnType<typeof loadWorkspace>>>;
 
