@@ -500,4 +500,4 @@ button,.chip,.tab,.opt,.btn{-webkit-tap-highlight-color:transparent;-webkit-user
 .ptcheck .afield{margin:0;padding:6px 9px;font-size:13px}
 .ptaudit{font-size:12.5px}
 .ptaudit td{white-space:normal;word-break:break-word}
-@media (max-width:640px){.ptkv{grid-template-columns:1fr}.ptrows{grid-template-columns:auto 1fr}.adminshell{padding:20px 14px 60px}}
+@media (max-width:640px){.ptkv{grid-template-columns:1fr}.ptrows{grid-template-columns:auto 1fr}.adminshell{padding:20px 14px 60px}.ptwrap .pttable{min-width:720px}.ptwrap{margin:0 -14px;padding:0 14px}}

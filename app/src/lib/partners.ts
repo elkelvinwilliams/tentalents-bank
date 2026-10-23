@@ -35,7 +35,7 @@ export const LABEL: Record<string, string> = {
   eligibility: "Individual / corporate eligibility", min_age: "Minimum age", countries: "Approved and excluded countries", website_audience: "Website and audience requirements", traffic_sources: "Allowed traffic sources", identity_verification: "Identity verification", company_registration: "Company registration", tax_payout: "Tax and payout verification", programme_model: "Programme model", other: "Other",
   cpa_amount: "CPA amount", cpa_conditions: "CPA qualification conditions", revshare_pct: "Revenue-share %", revshare_basis: "Revenue-share calculation basis", hybrid_rules: "Hybrid payment rules", ib_terms: "IB terms", min_deposit: "Minimum deposit", min_trading: "Minimum trading requirement", account_verification: "Account verification requirements", qualification_deadline: "Qualification deadline", tracking_window: "Referral tracking window", payment_frequency: "Payment frequency", min_payout: "Minimum payout threshold", clawback_rules: "Refund, reversal and clawback rules", attribution_rules: "Attribution rules", permitted_traffic: "Permitted traffic sources", country_rates: "Country-specific rates", contract_start: "Contract start", contract_end: "Contract expiry", terms_confirmed_at: "Date terms confirmed", agreement_ref: "Governing agreement (link or reference)",
   website: "Website", social: "Social accounts", email: "Email marketing", paid_ads: "Paid advertising", webinar_community: "Webinars and community channels",
-  email_: "Email", call: "Call", meeting: "Meeting", portal: "Partner portal", low: "Low", normal: "Normal", high: "High", urgent: "Urgent", open: "Open", done: "Done", cancelled: "Cancelled",
+  call: "Call", meeting: "Meeting", portal: "Partner portal", low: "Low", normal: "Normal", high: "High", urgent: "Urgent", open: "Open", done: "Done", cancelled: "Cancelled",
   pending: "Pending", reversed: "Reversed", paid: "Paid", adjustment: "Adjustment", manual: "Manual entry", export: "Partner export", api: "API",
 };
 export const label = (v: string | null | undefined) => (v ? LABEL[v] ?? title(v) : "—");
@@ -71,3 +71,7 @@ export const strip = <T extends object>(o: T): Partial<T> => Object.fromEntries(
 
 /** Fields whose changes are written to the audit trail. */
 export const AUDITED_FIRM_FIELDS = ["applicationStatus", "termsStatus", "complianceStatus", "model", "countryEligibility", "owner", "nextAction", "nextActionDue"] as const;
+
+/* Correspondence types share the key "email" with the marketing channel; give them their own labels. */
+export const COMM_LABEL: Record<string, string> = { email: "Email", call: "Call", meeting: "Meeting", portal: "Partner portal", other: "Other" };
+export const commLabel = (k: string | null | undefined) => (k && COMM_LABEL[k]) || label(k);
