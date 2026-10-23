@@ -539,7 +539,7 @@ function Gate({ consent, setConsent, onContinue }: { consent: boolean; setConsen
       <div className="warn"><h3>Risk warning</h3><p>Trading leveraged products carries a high risk of losing money rapidly. Most retail accounts lose money. You could lose your entire stake.</p></div>
       <div className="blocks">
         <div className="block"><span>{I.book}</span><div><h3>Education only</h3><p>Ten Talents teaches how markets work. Nothing here is financial advice, a recommendation, or an invitation to trade.</p></div></div>
-        <div className="block"><span>{I.scale}</span><div><h3>Not regulated</h3><p>Ten Talents is not a bank and is not authorised or regulated by the Financial Conduct Authority. Speak to a licensed adviser before risking real money.</p></div></div>
+        <div className="block"><span>{I.scale}</span><div><h3>Not regulated</h3><p>Ten Talents is not a bank and is not authorised or regulated by the Financial Conduct Authority. Speak to a licensed adviser before risking real money. Ten Talents is the trading name of TenTalents Ltd, registered in England and Wales, company no. 17535544.</p></div></div>
         <div className="block"><span style={{ color: "#e08a6f" }}>{I.alert}</span><div><h3>Real trading risks</h3><p>If you trade with real money elsewhere you can lose all of it. Nothing you learn here changes that.</p></div></div>
         <div className="block"><span style={{ color: "#58c095" }}>{I.shield}</span><div><h3>Over 18 only</h3><p>This app is for people aged 18 or over.</p></div></div>
       </div>
