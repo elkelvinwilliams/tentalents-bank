@@ -318,6 +318,8 @@ export const partnerFirms = pgTable("partner_firms", {
   lastContactAt: text("last_contact_at"),      // YYYY-MM-DD
   lastResearchAt: text("last_research_at"),    // YYYY-MM-DD
   notes: text("notes").notNull().default(""),
+  affiliateId: text("affiliate_id"),            // issued by the programme on approval; never a secret
+  trackingLink: text("tracking_link"),          // issued on approval
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("partner_firms_slug_uq").on(t.slug)]);

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       case "firm": {
         if (action !== "update") return bad("Firms are seeded; create/delete is not exposed here.");
         const set = strip({
-          name: str(f.name, 120), logoUrl: f.logoUrl === "none" ? "none" : url(f.logoUrl) ?? (f.logoUrl === null ? null : undefined), programmeUrl: url(f.programmeUrl), applyUrl: url(f.applyUrl), requirementsUrl: url(f.requirementsUrl),
+          name: str(f.name, 120), logoUrl: f.logoUrl === "none" ? "none" : url(f.logoUrl) ?? (f.logoUrl === null ? null : undefined), programmeUrl: url(f.programmeUrl), applyUrl: url(f.applyUrl), requirementsUrl: url(f.requirementsUrl), affiliateId: str(f.affiliateId, 120), trackingLink: url(f.trackingLink),
           model: oneOf(MODEL, f.model), applicationStatus: oneOf(APPLICATION_STATUS, f.applicationStatus), termsStatus: oneOf(TERMS_STATUS, f.termsStatus), complianceStatus: oneOf(COMPLIANCE_STATUS, f.complianceStatus),
           countryEligibility: oneOf(COUNTRY_ELIGIBILITY, f.countryEligibility), countryNote: str(f.countryNote), targetCountries: Array.isArray(f.targetCountries) ? f.targetCountries.filter((x): x is string => typeof x === "string").map((x) => x.toUpperCase().slice(0, 2)).slice(0, 40) : undefined,
           owner: str(f.owner, 120), nextAction: str(f.nextAction, 1000), nextActionDue: dateOrNull(f.nextActionDue), lastContactAt: dateOrNull(f.lastContactAt), lastResearchAt: dateOrNull(f.lastResearchAt), notes: str(f.notes, 20000),
