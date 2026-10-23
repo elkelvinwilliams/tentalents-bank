@@ -1,7 +1,7 @@
 import { db, tables } from "@/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { nid } from "./auth";
-import { SEED_FIRMS, SEED_NOTE, SEED_RESEARCH_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays } from "@/content/partners-seed";
+import { SEED_FIRMS, SEED_NOTE, SEED_RESEARCH_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays, RETIRED_SLUGS } from "@/content/partners-seed";
 import { overdue, dueSoon, today } from "./partners";
 
 /* ============================================================
@@ -14,7 +14,7 @@ type Rows = {
   tasks: (typeof tables.partnerTasks.$inferInsert)[]; audit: (typeof tables.partnerAudit.$inferInsert)[];
 };
 
-/** Deterministic seed rows for the five prospects (same ids in db-setup and the Neon SQL file). */
+/** Deterministic seed rows for the prospects (same ids in db-setup and the Neon SQL file). */
 export function seedRows(): Rows {
   const R: Rows = { firms: [], research: [], applications: [], terms: [], compliance: [], channels: [], tasks: [], audit: [] };
   for (const f of SEED_FIRMS) {
@@ -31,8 +31,9 @@ export function seedRows(): Rows {
   return R;
 }
 
-/** Insert the five prospects if (and only if) they are missing. Never overwrites edits. */
+/** Remove retired firms, then insert the prospects if (and only if) they are missing. Never overwrites edits. */
 export async function seedPartners() {
+  for (const slug of RETIRED_SLUGS) await db.delete(tables.partnerFirms).where(eq(tables.partnerFirms.slug, slug)); // cascades to every child table
   const R = seedRows(); let created = 0;
   for (const firm of R.firms) {
     const exists = (await db.select({ id: tables.partnerFirms.id }).from(tables.partnerFirms).where(eq(tables.partnerFirms.slug, firm.slug)))[0];

@@ -1,5 +1,5 @@
 /* ============================================================
-   Affiliate Partnerships — seed for the five PROSPECTS.
+   Affiliate Partnerships — seed for the four PROSPECTS.
    Everything here is PROVISIONAL and truthful: no application has been
    submitted, nothing is approved, no terms are confirmed, no commission exists.
    Research claims are recorded as ASSUMPTIONS drawn from the brief and the
@@ -24,6 +24,10 @@ const OWNER = "Kelvin Williams";
 const STANDARD_CHECKLIST = ["Confirm the correct legal entity to contract (sole trader now; company after incorporation)", "Website audit against the programme's publisher requirements", "Prepare audience and traffic description (education-first, UK)", "Prepare affiliate-disclosure and risk-warning wording", "Identify every channel to be approved (website, social, email, paid, community)", "Record official contact route and reference"];
 const STANDARD_DOCS = ["Proof of identity (reference to secure store only)", "Proof of address (reference to secure store only)", "Company registration certificate (after incorporation)", "Bank / payout details (reference to secure store only)", "Tax form if required (e.g. W-8BEN)"];
 
+/* Firms removed by founder decision. db:setup deletes them (and everything attached) if present; they are never re-seeded.
+   ig — IG declined the application on 2026-10-23; dropped (D-027). */
+export const RETIRED_SLUGS = ["ig"] as const;
+
 export const SEED_FIRMS: SeedFirm[] = [
   {
     slug: "axi", name: "Axi", programmeUrl: "https://www.axi.com/uk/partnerships/affiliate-program", model: "cpa",
@@ -36,18 +40,6 @@ export const SEED_FIRMS: SeedFirm[] = [
       { topic: "traffic_sources", claim: "Which Ten Talents promotional channels can be approved is unknown.", sourceUrl: "https://www.axi.com/uk/partnerships/affiliate-program", verification: "open_question" },
     ],
     tasks: [{ title: "Review the UK affiliate programme page and record verified facts", priority: "high", dueDays: 7 }, { title: "Request the current rate card and qualification rules in writing", priority: "high", dueDays: 14 }, { title: "Ask which promotional channels can be approved", dueDays: 14 }],
-    checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
-  },
-  {
-    slug: "ig", name: "IG", programmeUrl: "https://www.ig.com/uk/marketing-partnership/affiliate-partnerships", requirementsUrl: "https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements", model: "enquiry_pending",
-    notes: "Prospect. IG reviews publisher content, website ownership, relevance, quality, commission disclosure and compliance before accepting publishers. Apply only when the submission is accurate and ready.",
-    nextAction: "Review the publisher requirements; audit Ten Talents' public web presence against them; identify missing original educational content or disclosures; apply only when ready.", nextActionDueDays: 21,
-    research: [
-      { topic: "website_audience", claim: "IG reviews publisher content, website ownership, relevance, quality, commission disclosure and compliance.", sourceUrl: "https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements" },
-      { topic: "programme_model", claim: "Commercial model (CPA / revenue share / hybrid) not yet confirmed for a UK education publisher.", sourceUrl: "https://www.ig.com/uk/marketing-partnership/affiliate-partnerships", verification: "open_question" },
-      { topic: "eligibility", claim: "Whether a sole trader (pre-incorporation) can be accepted is unknown.", sourceUrl: "https://www.ig.com/uk/marketing-partnership/affiliate-partnerships/requirements", verification: "open_question" },
-    ],
-    tasks: [{ title: "Read the IG publisher requirements page and record each requirement", priority: "high", dueDays: 7 }, { title: "Audit the website and app against IG's requirements; list gaps", priority: "high", dueDays: 14 }, { title: "Write the affiliate commission disclosure for the site", dueDays: 21 }],
     checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
   },
   {

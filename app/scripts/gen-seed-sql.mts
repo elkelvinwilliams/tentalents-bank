@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { TRACKS, GLOSSARY } from "../src/content/seed-data";
 import { seedRows } from "../src/lib/partners-data";
+import { RETIRED_SLUGS } from "../src/content/partners-seed";
 
 const q = (s: string) => "'" + String(s).replace(/'/g, "''") + "'";
 
@@ -44,12 +45,13 @@ GLOSSARY.forEach(([term, def], gi) => {
   out += `INSERT INTO glossary_terms (id,term,definition,position) VALUES (${q("g"+gi)},${q(term)},${q(def)},${gi}) ON CONFLICT (id) DO UPDATE SET term=EXCLUDED.term,definition=EXCLUDED.definition,position=EXCLUDED.position;\n`;
 });
 
-/* Affiliate partnerships — the five PROSPECTS, provisional statuses only. Insert-if-missing so dashboard edits are never overwritten. */
+/* Affiliate partnerships — the PROSPECTS, provisional statuses only. Insert-if-missing so dashboard edits are never overwritten. */
 const R = seedRows();
 const v = (x: unknown) => (x === null || x === undefined ? "NULL" : typeof x === "boolean" ? String(x) : typeof x === "number" ? String(x) : typeof x === "object" ? q(JSON.stringify(x)) + "::jsonb" : q(String(x)));
 let pt = "";
 const ins = (table: string, rows: Record<string, unknown>[], cols: Record<string, string>) => rows.forEach((r) => { const ks = Object.keys(cols).filter((k) => r[k] !== undefined); pt += `INSERT INTO ${table} (${ks.map((k) => cols[k]).join(",")}) VALUES (${ks.map((k) => v(r[k])).join(",")}) ON CONFLICT DO NOTHING;\n`; });
-pt += `\n-- Affiliate partnerships: five prospects (provisional; nothing submitted, approved or confirmed). Insert-if-missing.\n`;
+pt += `\n-- Affiliate partnerships: prospects (provisional; nothing submitted, approved or confirmed). Insert-if-missing.\n`;
+for (const slug of RETIRED_SLUGS) pt += `DELETE FROM partner_firms WHERE slug=${q(slug)}; -- retired by founder decision; cascades\n`;
 ins("partner_firms", R.firms as Record<string, unknown>[], { id: "id", slug: "slug", name: "name", programmeUrl: "programme_url", applyUrl: "apply_url", requirementsUrl: "requirements_url", model: "model", applicationStatus: "application_status", termsStatus: "terms_status", complianceStatus: "compliance_status", countryEligibility: "country_eligibility", targetCountries: "target_countries", owner: "owner", nextAction: "next_action", nextActionDue: "next_action_due", lastResearchAt: "last_research_at", notes: "notes" });
 ins("partner_research", R.research as Record<string, unknown>[], { id: "id", firmId: "firm_id", topic: "topic", claim: "claim", sourceUrl: "source_url", verification: "verification", verifiedAt: "verified_at", notes: "notes" });
 ins("partner_applications", R.applications as Record<string, unknown>[], { id: "id", firmId: "firm_id", checklist: "checklist", documents: "documents" });

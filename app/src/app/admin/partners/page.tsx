@@ -16,7 +16,7 @@ export default async function PartnersPage() {
         <Link href="/admin/glossary">Glossary</Link><Link href="/admin/members">Members</Link><Link href="/admin/partners" className="on">Affiliate partnerships</Link>
       </div>
       <h1>Affiliate partnerships</h1>
-      <p className="sub">Internal operations. Five prospective programmes; nothing here is customer-facing, and nothing here moves money.</p>
+      <p className="sub">Internal operations. Four prospective programmes; nothing here is customer-facing, and nothing here moves money.</p>
       <PartnersOverview firms={firms} actions={actions} />
       {logoAttribution() && <p className="faint" style={{ fontSize: 12, marginTop: 24 }}>Logos provided by <a href="https://logo.dev" target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>Logo.dev</a>.</p>}
     </div>
