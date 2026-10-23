@@ -1,5 +1,5 @@
 "use client";
-/* Affiliate Partnerships — overview: summary, search/filter/sort, five firm tiles, consolidated
+/* Affiliate Partnerships — overview: summary, search/filter/sort, firm tiles, consolidated
    next actions. Statuses are three independent axes and are shown as plain labels. */
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export default function PartnersOverview({ firms, actions }: { firms: FirmSummar
   const overdueCount = actions.filter((a) => a.overdue).length;
 
   return (<>
-    <div className="ptnote"><b>Provisional throughout.</b> All five firms are prospects. Application, commercial-terms and compliance statuses are independent and change only when the matching evidence is recorded. An affiliate agreement is not permission to communicate financial promotions; every channel needs its own approval record.</div>
+    <div className="ptnote"><b>Provisional throughout.</b> All firms shown are prospects. Application, commercial-terms and compliance statuses are independent and change only when the matching evidence is recorded. An affiliate agreement is not permission to communicate financial promotions; every channel needs its own approval record.</div>
     <div className="ptstats">
       <div className="ptstat"><div className="k">Prospects</div><div className="v">{firms.length}</div><div className="d">firms tracked</div></div>
       <div className="ptstat"><div className="k">Applications submitted</div><div className="v">{n((f) => ["application_submitted", "awaiting_response", "more_info_required"].includes(f.applicationStatus))}</div><div className="d">{n((f) => f.applicationStatus === "ready_to_apply")} ready to apply</div></div>

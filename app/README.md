@@ -84,8 +84,10 @@ run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both
 Internal operations tool at `/admin/partners` (same `ADMIN_PASSWORD` gate as the
 rest of admin; every page and API route checks `isAdmin()` server-side and
 returns a redirect / `401` otherwise). Nothing in it is customer-facing and it
-never moves money. It tracks five **prospective** broker affiliate programmes:
-Axi, IG, Pepperstone, Plus500 / 500Affiliates and Trading 212.
+never moves money. It tracks four **prospective** broker affiliate programmes:
+Axi, Pepperstone, Plus500 / 500Affiliates and Trading 212. (IG was dropped on
+2026-10-23 after declining an application; `RETIRED_SLUGS` in the seed removes it
+from any database on the next `db:setup`.)
 
 - **Three independent status axes** per firm, stored as separate columns and
   validated as separate enums: application status, commercial-terms status,
@@ -116,7 +118,7 @@ Axi, IG, Pepperstone, Plus500 / 500Affiliates and Trading 212.
   `partner_term_items`, `partner_compliance`, `partner_channel_approvals`,
   `partner_comms`, `partner_tasks`, `partner_reports`, `partner_ledger`,
   `partner_audit`. `db:setup` (and therefore every Vercel build) applies it and
-  seeds the five firms **insert-if-missing** — dashboard edits are never
+  seeds the firms **insert-if-missing** — dashboard edits are never
   overwritten. The Neon SQL files at the repo root carry the same seed.
 - **Seed is provisional**: statuses Researching / Unverified / Not Reviewed,
   research claims marked `assumption` dated 2026-10-21 (official pages were not
