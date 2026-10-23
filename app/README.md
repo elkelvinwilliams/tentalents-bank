@@ -84,10 +84,17 @@ run `ten-talents-academy-neon-upgrade.sql` (repo root) once — it contains both
 Internal operations tool at `/admin/partners` (same `ADMIN_PASSWORD` gate as the
 rest of admin; every page and API route checks `isAdmin()` server-side and
 returns a redirect / `401` otherwise). Nothing in it is customer-facing and it
-never moves money. It tracks four **prospective** broker affiliate programmes:
-Axi, Pepperstone, Plus500 / 500Affiliates and Trading 212. (IG was dropped on
+never moves money. It tracks **prospective** broker affiliate programmes: Axi, Pepperstone,
+Plus500 / 500Affiliates, Trading 212, XM, Exness and PrimeXBT. (IG was dropped on
 2026-10-23 after declining an application; `RETIRED_SLUGS` in the seed removes it
-from any database on the next `db:setup`.)
+from any database on the next `db:setup`.) The seed also fills missing rows for
+existing firms (new term keys, new research claims, empty URLs) without ever
+overwriting a value that is set.
+- **Comparison and ranking** on the overview: 35% payout speed, 30% achievable
+  CPA, 20% country eligibility and compliance, 15% minimum withdrawal
+  (`src/lib/partners-rank.ts`). Confirmed terms count in full, advertised ones at
+  60%, contradicted ones at 40%; Review Required halves the compliance axis.
+  Unconfirmed inputs are listed as Needs Confirmation.
 
 - **Three independent status axes** per firm, stored as separate columns and
   validated as separate enums: application status, commercial-terms status,

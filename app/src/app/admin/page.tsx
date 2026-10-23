@@ -34,7 +34,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
         <Link className="card press" style={{ margin: 0, textDecoration: "none" }} href="/admin/content"><h3>Tracks &amp; lessons</h3><p>Create, edit, reorder, publish. Quiz builder per module.</p></Link>
         <Link className="card press" style={{ margin: 0, textDecoration: "none" }} href="/admin/glossary"><h3>Glossary</h3><p>Terms and definitions.</p></Link>
         <Link className="card press" style={{ margin: 0, textDecoration: "none" }} href="/admin/members"><h3>Members</h3><p>Accounts, plan status, progress.</p></Link>
-        <Link className="card press" style={{ margin: 0, textDecoration: "none" }} href="/admin/partners"><h3>Affiliate partnerships</h3><p>Internal: four prospect programmes — research, applications, terms, compliance, tasks.</p></Link>
+        <Link className="card press" style={{ margin: 0, textDecoration: "none" }} href="/admin/partners"><h3>Affiliate partnerships</h3><p>Internal: prospect programmes — research, applications, terms, compliance, tasks.</p></Link>
       </div>
     </div>
   );

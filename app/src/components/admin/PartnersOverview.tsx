@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { FirmSummary } from "@/lib/partners-data";
+import type { RankRow } from "@/lib/partners-rank";
 import { APPLICATION_STATUS, TERMS_STATUS, COMPLIANCE_STATUS, label, tone, fmtDate, overdue, dueSoon } from "@/lib/partners";
 
 type Action = { kind: "action" | "task"; firmId: string; firmName: string; slug: string; title: string; due: string | null; owner: string; priority: string; id: string; overdue: boolean };
@@ -22,7 +23,7 @@ function Due({ d }: { d: string | null | undefined }) {
   return <span className={`ptdue ${cls}`}>{fmtDate(d)}{overdue(d) ? " · overdue" : dueSoon(d) ? " · due soon" : ""}</span>;
 }
 
-export default function PartnersOverview({ firms, actions }: { firms: FirmSummary[]; actions: Action[] }) {
+export default function PartnersOverview({ firms, actions, ranking }: { firms: FirmSummary[]; actions: Action[]; ranking: RankRow[] }) {
   const [q, setQ] = useState(""); const [fa, setFa] = useState(""); const [ft, setFt] = useState(""); const [fc, setFc] = useState(""); const [sort, setSort] = useState<Sort>("due");
   const list = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -66,18 +67,35 @@ export default function PartnersOverview({ firms, actions }: { firms: FirmSummar
               <span className="k">Next due</span><span className="v"><Due d={f.nextActionDue} /></span>
             </div>
             <div className="next"><b>Next:</b> {f.nextAction || <span className="faint">not set</span>}</div>
-            <div className="foot"><span>Owner: {f.owner || "—"}{f.openTasks ? ` · ${f.openTasks} open task${f.openTasks === 1 ? "" : "s"}` : ""}{f.overdueTasks ? <span style={{ color: "var(--red)" }}> · {f.overdueTasks} overdue</span> : null}</span><Link className="abtn" href={`/admin/partners/${f.slug}`}>Open workspace</Link></div>
+            <div className="foot"><span>Owner: {f.owner || "—"}{f.openTasks ? ` · ${f.openTasks} open task${f.openTasks === 1 ? "" : "s"}` : ""}{f.overdueTasks ? <span style={{ color: "var(--red)" }}> · {f.overdueTasks} overdue</span> : null}</span><Link prefetch={false} className="abtn" href={`/admin/partners/${f.slug}`}>Open workspace</Link></div>
           </div>
         ))}
       </div>
     ) : <div className="ptempty">No firm matches that search or filter.</div>}
+
+    <div className="ptsec"><h2>Comparison and ranking</h2><span className="sub">35% payout speed · 30% achievable CPA · 20% country eligibility and compliance · 15% minimum withdrawal</span></div>
+    <div className="ptnote"><b>Provisional.</b> Confirmed terms count in full; advertised or received-but-unconfirmed values count at 60%; values the sources contradict count at 40%; an empty input scores 0. Compliance status Review Required halves the UK axis and Suspended zeroes it. Anything not confirmed is listed as Needs Confirmation. The ranking therefore rewards verified, payable, permitted terms, not the biggest advertised ceiling.</div>
+    {ranking.length ? <div className="ptwrap"><table className="pttable"><thead><tr><th>#</th><th>Programme</th><th>Advertised max CPA</th><th>Approved CPA</th><th>Payment frequency</th><th>Min. withdrawal</th><th>UK / countries</th><th>Score</th><th>Needs Confirmation</th><th>Next action</th></tr></thead><tbody>
+      {ranking.map((r, i) => (<tr key={r.id}>
+        <td><b>{i + 1}</b></td>
+        <td style={{ whiteSpace: "nowrap" }}><Link prefetch={false} href={`/admin/partners/${r.slug}`} style={{ color: "var(--gold)", fontWeight: 600, textDecoration: "none" }}>{r.name}</Link><div className="faint" style={{ fontSize: 11.5 }}>{label(r.model)} · {label(r.applicationStatus)}</div></td>
+        <td style={{ minWidth: 180 }}>{r.advertisedCpa || <span className="faint">—</span>}</td>
+        <td style={{ minWidth: 120 }}>{r.approvedCpa || <span className="faint">not confirmed</span>}</td>
+        <td style={{ minWidth: 160 }}>{r.paymentFrequency || <span className="faint">—</span>}</td>
+        <td style={{ minWidth: 140 }}>{r.minPayout || <span className="faint">—</span>}</td>
+        <td style={{ minWidth: 160 }}><Status v={r.countryEligibility} /> <Status v={r.permitted === "unknown" ? "not_reviewed" : r.permitted} />{r.countries ? <div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{r.countries}</div> : null}</td>
+        <td style={{ whiteSpace: "nowrap" }}><b style={{ fontSize: 16 }}>{r.total}</b><div className="faint" style={{ fontSize: 11 }}>pay {r.scores.payout} · cpa {r.scores.cpa} · uk {r.scores.country} · min {r.scores.ease}</div></td>
+        <td style={{ minWidth: 160 }}>{r.needsConfirmation.length ? <span className="ptstatus warn">{r.needsConfirmation.length} of 4</span> : <span className="ptstatus good">verified</span>}<div className="faint" style={{ fontSize: 11.5, marginTop: 4 }}>{r.needsConfirmation.join(" · ")}</div></td>
+        <td style={{ minWidth: 220, fontSize: 12.5 }}>{r.nextAction}{r.nextActionDue ? <div className="faint" style={{ fontSize: 11.5 }}>due {fmtDate(r.nextActionDue)}</div> : null}</td>
+      </tr>))}
+    </tbody></table></div> : null}
 
     <div className="ptsec"><h2>Next actions across all firms</h2><span className="sub">firm next actions and open tasks, soonest first</span></div>
     <div className="ptcard">
       {actions.length ? <div className="ptactions">{actions.slice(0, 30).map((a) => (
         <div key={a.kind + a.id} className="ptaction">
           <span className={`when ${a.overdue ? "over" : ""}`}>{a.due ? fmtDate(a.due) : "no date"}{a.overdue ? " · overdue" : ""}</span>
-          <span style={{ flex: 1, minWidth: 0 }}><Link href={`/admin/partners/${a.slug}`} className="firm" style={{ textDecoration: "none" }}>{a.firmName}</Link> · {a.kind === "task" ? "Task" : "Next action"}{a.priority === "high" || a.priority === "urgent" ? ` · ${label(a.priority)}` : ""}<div>{a.title}</div></span>
+          <span style={{ flex: 1, minWidth: 0 }}><Link prefetch={false} href={`/admin/partners/${a.slug}`} className="firm" style={{ textDecoration: "none" }}>{a.firmName}</Link> · {a.kind === "task" ? "Task" : "Next action"}{a.priority === "high" || a.priority === "urgent" ? ` · ${label(a.priority)}` : ""}<div>{a.title}</div></span>
           <span className="faint" style={{ fontSize: 12, whiteSpace: "nowrap" }}>{a.owner || "—"}</span>
         </div>
       ))}</div> : <div className="ptempty">No open actions.</div>}

@@ -10,7 +10,7 @@ import { Status, Logo } from "./PartnersOverview";
 
 type Tab = "overview" | "research" | "application" | "terms" | "compliance" | "comms" | "performance" | "audit";
 const TABS: [Tab, string][] = [["overview", "Overview"], ["research", "Research & eligibility"], ["application", "Application"], ["terms", "Commercial terms"], ["compliance", "Compliance"], ["comms", "Communications & tasks"], ["performance", "Performance & payments"], ["audit", "Audit trail"]];
-const MONEY_KEYS = new Set(["cpa_amount", "min_deposit", "min_payout"]);
+const MONEY_KEYS = new Set(["cpa_advertised_max", "cpa_amount", "min_deposit", "min_payout"]);
 
 function useSave(firmId: string) {
   const router = useRouter();
@@ -77,12 +77,14 @@ export default function PartnerWorkspace({ ws }: { ws: Workspace }) {
         <F label="Official application / contact route"><Txt value={firm.applyUrl} onSave={(v) => firmUp({ applyUrl: v })} placeholder="https:// or 'email partnerships@…'" /></F>
         <F label="Requirements page URL"><Txt value={firm.requirementsUrl} onSave={(v) => firmUp({ requirementsUrl: v })} placeholder="https://" /></F>
         <F label="Partnership model under consideration"><Sel value={firm.model} options={MODEL} onSave={(v) => firmUp({ model: v })} /></F>
-        <F label="Application status"><Sel value={firm.applicationStatus} options={APPLICATION_STATUS} onSave={(v) => firmUp({ applicationStatus: v })} /></F>
+        <F label="Application status" hint="Not Applied = Not Started / Researching / Ready to Apply · Applied = Application Submitted · Awaiting Information = Awaiting Response / More Information Required · Rejected = Declined."><Sel value={firm.applicationStatus} options={APPLICATION_STATUS} onSave={(v) => firmUp({ applicationStatus: v })} /></F>
         <F label="Commercial terms status" hint="Confirmed requires at least one term marked Confirmed with its source."><Sel value={firm.termsStatus} options={TERMS_STATUS} onSave={(v) => firmUp({ termsStatus: v })} /></F>
         <F label="Compliance status"><Sel value={firm.complianceStatus} options={COMPLIANCE_STATUS} onSave={(v) => firmUp({ complianceStatus: v })} /></F>
         <F label="Country eligibility"><Sel value={firm.countryEligibility} options={COUNTRY_ELIGIBILITY} onSave={(v) => firmUp({ countryEligibility: v })} /></F>
         <F label="Country eligibility note"><Txt value={firm.countryNote} onSave={(v) => firmUp({ countryNote: v })} placeholder="e.g. UK publishers accepted; UK customers eligible — confirmed by email 1 Nov" /></F>
         <F label="Target countries" hint="ISO codes, comma-separated (GB, IE…)."><Txt value={(firm.targetCountries ?? []).join(", ")} onSave={(v) => firmUp({ targetCountries: v.split(/[,\s]+/).filter(Boolean) })} /></F>
+        <F label="Affiliate account ID" hint="Only once the programme issues it. Never a password or API key."><Txt value={firm.affiliateId} onSave={(v) => firmUp({ affiliateId: v })} placeholder="issued on approval" /></F>
+        <F label="Tracking link" hint="Only once issued; test it before use (task)."><Txt value={firm.trackingLink} onSave={(v) => firmUp({ trackingLink: v })} placeholder="https://" /></F>
         <F label="Assigned owner"><Txt value={firm.owner} onSave={(v) => firmUp({ owner: v })} /></F>
         <F label="Last research date"><Dt value={firm.lastResearchAt} onSave={(v) => firmUp({ lastResearchAt: v || null })} /></F>
         <F label="Last contact date" hint="Also set automatically when a communication is logged."><Dt value={firm.lastContactAt} onSave={(v) => firmUp({ lastContactAt: v || null })} /></F>
