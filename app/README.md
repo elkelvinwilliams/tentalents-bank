@@ -121,6 +121,11 @@ Axi, IG, Pepperstone, Plus500 / 500Affiliates and Trading 212.
 - **Seed is provisional**: statuses Researching / Unverified / Not Reviewed,
   research claims marked `assumption` dated 2026-10-21 (official pages were not
   re-checked from the build environment), no submissions, no terms, no approvals.
+- **Logos** (optional): set `LOGO_DEV_KEY` (a Logo.dev *publishable* key) in
+  Vercel and each tile shows the firm's logo derived from its official domain;
+  a saved Logo URL on a firm always wins; without the key, initials are shown.
+  Logo.dev's free tier requires the "Logos provided by Logo.dev" credit, which
+  the admin page prints when the key is set.
 - **Boundaries**: no broker integrations, scraping or portal automation; no
   secrets in the repo (logo/programme URLs are public); document fields hold
   references to secure locations, never the documents; the actor is the shared
