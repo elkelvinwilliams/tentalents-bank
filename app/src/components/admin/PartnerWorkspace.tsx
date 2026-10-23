@@ -21,7 +21,14 @@ function useSave(firmId: string) {
     if (!r.ok) { setMsg({ ok: false, text: d.error ?? "Could not save." }); return false; }
     setMsg({ ok: true, text: "Saved" }); setTimeout(() => setMsg(null), 1800); router.refresh(); return true;
   }, [firmId, router]);
-  return { save, msg };
+  const upload = useCallback(async (file: File) => {
+    const fd = new FormData(); fd.append("file", file);
+    const r = await fetch(`/api/admin/partners/${firmId}/logo`, { method: "POST", body: fd });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { setMsg({ ok: false, text: d.error ?? "Upload failed." }); return false; }
+    setMsg({ ok: true, text: "Logo saved" }); setTimeout(() => setMsg(null), 1800); router.refresh(); return true;
+  }, [firmId, router]);
+  return { save, msg, upload };
 }
 
 /* ---- field primitives (defaultValue + save on blur / change) ---- */
@@ -36,7 +43,7 @@ function Sel({ value, options, onSave, allowEmpty }: { value: string | null | un
 const Dt = ({ value, onSave }: { value: string | null | undefined; onSave: (v: string) => void }) => <input className="afield" type="date" defaultValue={value ?? ""} onBlur={(e) => (e.target.value || "") !== (value ?? "") && onSave(e.target.value)} />;
 
 export default function PartnerWorkspace({ ws }: { ws: Workspace }) {
-  const { firm } = ws; const { save, msg } = useSave(firm.id);
+  const { firm } = ws; const { save, msg, upload } = useSave(firm.id);
   const [tab, setTab] = useState<Tab>("overview");
   const up = (entity: string, id?: string) => (fields: Record<string, unknown>) => save(entity, "update", id, fields);
   const firmUp = up("firm");
@@ -64,7 +71,8 @@ export default function PartnerWorkspace({ ws }: { ws: Workspace }) {
       <div className="ptnote">The three statuses are independent. Approved application ≠ confirmed terms ≠ compliance approval. Change a status only when the evidence for it is recorded in the matching section.</div>
       <div className="ptform">
         <F label="Company name"><Txt value={firm.name} onSave={(v) => firmUp({ name: v })} /></F>
-        <F label="Logo URL" hint="Optional. Blank = derived logo (if configured) or initials; type none to force the initials."><Txt value={firm.logoUrl} onSave={(v) => firmUp({ logoUrl: v || null })} placeholder="https://" /></F>
+        <F label="Logo URL" hint="Optional. Blank = derived logo (if configured) or initials; type none to force the initials."><Txt value={firm.logoUrl?.startsWith("data:") ? "(uploaded image; upload again to replace, or type none to clear)" : firm.logoUrl} onSave={(v) => { if (!v.startsWith("(")) firmUp({ logoUrl: v || null }); }} placeholder="https://" /></F>
+        <F label="Upload logo" hint="PNG, JPEG, WebP or SVG up to 200 KB. Stored with the firm; overrides the derived image."><input className="afield" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={(e) => { const f = e.target.files?.[0]; if (f) { upload(f); e.target.value = ""; } }} /></F>
         <F label="Official programme URL"><Txt value={firm.programmeUrl} onSave={(v) => firmUp({ programmeUrl: v })} placeholder="https://" /></F>
         <F label="Official application / contact route"><Txt value={firm.applyUrl} onSave={(v) => firmUp({ applyUrl: v })} placeholder="https:// or 'email partnerships@…'" /></F>
         <F label="Requirements page URL"><Txt value={firm.requirementsUrl} onSave={(v) => firmUp({ requirementsUrl: v })} placeholder="https://" /></F>
