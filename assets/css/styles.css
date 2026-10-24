@@ -869,3 +869,9 @@ h1, h2, h3, h4 { font-weight: 400; letter-spacing: -0.015em; }
 .bp-list .bp-name{color:var(--ivory)}
 .broker-partners .bp-check{margin-top:1rem;font-size:.8rem;color:var(--text-faint)}
 .broker-partners .bp-check a{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
+/* Broker logos: white tile so every brand mark reads on navy; removed by JS if it fails to load */
+.bp-logo{width:48px;height:48px;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden;margin-bottom:.6rem;flex:none}
+.bp-logo img{width:100%;height:100%;object-fit:contain;display:block}
+.broker-partners .bp-credit{margin-top:.45rem;font-size:.72rem;color:var(--text-faint)}
+.broker-partners .bp-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.bp-list li{justify-content:flex-end}
