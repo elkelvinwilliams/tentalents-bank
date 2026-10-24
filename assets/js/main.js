@@ -174,8 +174,19 @@
     var linked = /^https?:\/\//i.test(b.url || '');
     var name = linked ? '<a href="' + esc(b.url) + '" rel="sponsored noopener" target="_blank">' + esc(b.name) + '</a>' : '<span class="bp-name">' + esc(b.name) + '</span>';
     var note = linked ? (b.note || 'Affiliate link \u2014 Ten Talents may receive a commission.') : (b.note || 'Affiliate partner');
-    return '<li>' + name + '<small>' + esc(note) + (b.risk ? ' ' + esc(b.risk) : '') + '</small></li>';
+    // Logo: a local file under assets/img/brokers/, or a domain fetched through the app's Logo.dev endpoint.
+    var src = '', via = '';
+    if (typeof b.logo === 'string' && /^assets\/img\/brokers\/[\w.-]+\.(png|svg|webp|jpg)$/i.test(b.logo)) { src = b.logo; via = 'file'; }
+    else if (typeof b.domain === 'string' && /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(b.domain) && window.TT_LOGO_ENDPOINT) { src = window.TT_LOGO_ENDPOINT + b.domain.toLowerCase(); via = 'logodev'; }
+    var logo = src ? '<span class="bp-logo"><img src="' + esc(src) + '" alt="" width="48" height="48" loading="lazy" decoding="async" data-via="' + via + '" /></span>' : '';
+    return '<li>' + logo + name + '<small>' + esc(note) + (b.risk ? ' ' + esc(b.risk) : '') + '</small></li>';
   }).join('');
   list.hidden = false; if (empty) empty.hidden = true;
+  var credit = box.querySelector('.bp-credit');
+  var syncCredit = function () { if (credit) credit.hidden = !list.querySelector('img[data-via="logodev"]'); };
+  list.querySelectorAll('.bp-logo img').forEach(function (img) {
+    img.addEventListener('error', function () { var w = img.parentNode; if (w && w.parentNode) w.parentNode.removeChild(w); syncCredit(); });
+  });
+  syncCredit();
 })();
 
