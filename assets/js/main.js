@@ -161,3 +161,17 @@
   var url = window.TT_APP_URL; if (!url) return;
   document.querySelectorAll('a[data-app]').forEach(function (a) { a.setAttribute('href', url); if (/^https?:/.test(url)) a.setAttribute('rel', 'noopener'); });
 })();
+
+/* ---- Partnerships: render confirmed broker partners from TT_BROKERS (assets/js/config.js) ---- */
+(function () {
+  var box = document.querySelector('[data-brokers]'); if (!box) return;
+  var list = box.querySelector('.bp-list'), empty = box.querySelector('.bp-empty');
+  var brokers = Array.isArray(window.TT_BROKERS) ? window.TT_BROKERS.filter(function (b) { return b && b.name && /^https?:/.test(b.url || ''); }) : [];
+  if (!brokers.length || !list) return;
+  var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  list.innerHTML = brokers.map(function (b) {
+    return '<li><a href="' + esc(b.url) + '" rel="sponsored noopener" target="_blank">' + esc(b.name) + '</a><small>' + esc(b.note || 'Affiliate link \u2014 Ten Talents may receive a commission.') + (b.risk ? ' ' + esc(b.risk) : '') + '</small></li>';
+  }).join('');
+  list.hidden = false; if (empty) empty.hidden = true;
+})();
+
