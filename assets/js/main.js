@@ -166,11 +166,15 @@
 (function () {
   var box = document.querySelector('[data-brokers]'); if (!box) return;
   var list = box.querySelector('.bp-list'), empty = box.querySelector('.bp-empty');
-  var brokers = Array.isArray(window.TT_BROKERS) ? window.TT_BROKERS.filter(function (b) { return b && b.name && /^https?:/.test(b.url || ''); }) : [];
+  var brokers = Array.isArray(window.TT_BROKERS) ? window.TT_BROKERS.filter(function (b) { return b && typeof b.name === 'string' && b.name.trim(); }) : [];
   if (!brokers.length || !list) return;
   var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   list.innerHTML = brokers.map(function (b) {
-    return '<li><a href="' + esc(b.url) + '" rel="sponsored noopener" target="_blank">' + esc(b.name) + '</a><small>' + esc(b.note || 'Affiliate link \u2014 Ten Talents may receive a commission.') + (b.risk ? ' ' + esc(b.risk) : '') + '</small></li>';
+    // Only an approved http(s) referral link becomes a link; anything else shows the name alone.
+    var linked = /^https?:\/\//i.test(b.url || '');
+    var name = linked ? '<a href="' + esc(b.url) + '" rel="sponsored noopener" target="_blank">' + esc(b.name) + '</a>' : '<span class="bp-name">' + esc(b.name) + '</span>';
+    var note = linked ? (b.note || 'Affiliate link \u2014 Ten Talents may receive a commission.') : (b.note || 'Affiliate partner');
+    return '<li>' + name + '<small>' + esc(note) + (b.risk ? ' ' + esc(b.risk) : '') + '</small></li>';
   }).join('');
   list.hidden = false; if (empty) empty.hidden = true;
 })();

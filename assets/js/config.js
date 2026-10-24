@@ -5,8 +5,16 @@
    prototype's redirect follow this one line. */
 window.TT_APP_URL = "https://tentalents-bank.vercel.app/";
 
-/* Confirmed broker partners for the homepage Partnerships section. Add a broker only when that broker has approved
-   the referral link and the content/channel; an agreement alone is not enough (see the admin Affiliate partnerships tool). Each entry:
-   { name: "Broker", url: "https://approved-referral-link", note: "Affiliate link — Ten Talents may receive a commission", risk: "Required risk warning from the broker" } */
-window.TT_BROKERS = [];
+/* Broker partners shown in the homepage Partnerships section: firms Ten Talents has affiliate agreements with
+   (founder-confirmed, 24 Oct 2026). A name-only entry shows the broker's name. Add `url` (the referral link the broker
+   has approved) and `risk` (the broker's required risk warning) only once the broker has approved them; the name then
+   becomes a link marked as an affiliate link. Use logos only from a broker's approved marketing materials.
+   { name: "Broker", url: "https://approved-referral-link", risk: "Required risk warning from the broker" } */
+window.TT_BROKERS = [
+  { name: "Vantage" },
+  { name: "Exness" },
+  { name: "Axi" },
+  { name: "Pepperstone" },
+  { name: "XM" }
+];
 
