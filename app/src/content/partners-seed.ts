@@ -211,7 +211,7 @@ export const SEED_FIRMS: SeedFirm[] = [
   },
 ];
 
-/* Status updates the founder confirmed, applied once per firm at deploy by seedPartners(): each moves the application
+/* Status updates the founder confirmed (agreements 24 Oct, D-029; Axi corrected to an application on 25 Oct), applied once per firm at deploy by seedPartners(): each moves the application
    status forward (never back, never over Approved, Declined or On Hold) with an audit row (actor "founder"), a
    correspondence note, the next action and a task. Commercial terms and compliance are left as they are: an approval
    is not confirmed terms, and not permission to promote. Nothing private (references, IDs, contacts) goes here. */
@@ -227,7 +227,13 @@ const AGREEMENT = (slug: string): FounderUpdate => ({
   task: { title: "File the signed agreement (reference only), affiliate ID and tracking link; confirm the account and payouts are in TenTalents Ltd's name", priority: "high", dueDays: 7 },
 });
 export const FOUNDER_UPDATES: FounderUpdate[] = [
-  ...["vantage", "axi", "xm", "pepperstone", "exness"].map(AGREEMENT),
+  ...["vantage", "xm", "pepperstone", "exness"].map(AGREEMENT),
+  { // Founder, 25 Oct: Axi has not approved yet; the application was sent by email on 22 Oct after the online form failed.
+    slug: "axi", status: "application_submitted", on: "2026-10-22",
+    comm: { kind: "other", contactName: "Kelvin Williams (founder)", summary: "Founder confirmed the Axi Affiliates application was submitted on 22 Oct; Axi has not yet approved it.", questionsOpen: "Approval decision; Affiliate Agreement and marketing guidelines; UK CPA tier; payout threshold and frequency." },
+    nextAction: "Application submitted (22 Oct). Chase Axi for the approval decision and the Affiliate Agreement; when it arrives, record the terms as Confirmed with their source.",
+    task: { title: "Chase Axi for the approval decision and the Affiliate Agreement", priority: "high", dueDays: 5 },
+  },
   {
     slug: "avatrade", status: "application_submitted", on: "2026-10-25",
     comm: { kind: "email", contactName: "AvaPartner team", summary: "Sign-up confirmation: the application was received; a Partner Manager will be in touch to introduce AvaPartner, understand the business model and suggest suitable options. Affiliate-account access to tools and creatives in the meantime.", questionsOpen: "Does AvaTrade accept UK clients, and through which entity (check the FCA Register first)? Rate card and qualification rules; approved channels; contracting as TenTalents Ltd." },
