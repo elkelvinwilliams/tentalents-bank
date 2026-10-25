@@ -1,7 +1,7 @@
 import { db, tables } from "@/db";
 import type { FirmSummary } from "./partners-data";
 
-/* Comparison ranking for the affiliate prospects (brief, 23 Oct 2026).
+/* Comparison ranking for the affiliate programmes (brief, 23 Oct 2026).
    Weights: 35% payout speed · 30% achievable CPA · 20% country eligibility & compliance · 15% minimum withdrawal / ease of payment.
    Rules are deliberately simple and visible. Inputs that are not Confirmed count as provisional and are listed as
    "Needs Confirmation"; an input with no usable value scores 0 on that axis. Verified (Confirmed) terms take precedence

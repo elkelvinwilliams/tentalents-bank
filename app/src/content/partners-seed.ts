@@ -1,16 +1,17 @@
 /* ============================================================
-   Affiliate Partnerships — seed for the four PROSPECTS.
-   Everything here is PROVISIONAL and truthful: no application has been
-   submitted, nothing is approved, no terms are confirmed, no commission exists.
-   Research claims are recorded as ASSUMPTIONS drawn from the brief and the
-   programmes' public pages; they must be re-verified against the official
-   source and marked "verified" with a date by a human. Seed is insert-if-missing:
-   re-running never overwrites edits made in the dashboard.
+   Affiliate Partnerships — seed for the programmes Ten Talents tracks.
+   Public code: programme URLs, provisional facts and founder-confirmed statuses
+   only. Agreement references, affiliate IDs, contacts and figures are entered in
+   the dashboard (private database), never here.
+   Research claims are ASSUMPTIONS drawn from the programmes' public pages until a
+   human verifies them against the source. Seed is insert-if-missing: re-running
+   never overwrites edits made in the dashboard. Founder-confirmed agreements
+   (CONFIRMED_AGREEMENTS) are applied once at deploy.
    ============================================================ */
 import { TERM_KEYS, CHANNELS } from "../lib/partners";
 
 export const SEED_RESEARCH_DATE = "2026-10-21";
-export const SEED_NOTE = "Seeded from the partnerships brief on " + SEED_RESEARCH_DATE + ". Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.";
+export const seedNote = (date: string) => "Seeded on " + date + " from the partnerships brief and the programmes' public pages. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.";
 
 export type SeedClaim = { topic: string; claim: string; sourceUrl: string; verification?: "assumption" | "verified" | "open_question" };
 export type SeedTask = { title: string; priority?: "low" | "normal" | "high" | "urgent"; dueDays?: number };
@@ -46,6 +47,8 @@ const STANDARD_DOCS = ["Proof of identity (reference to secure store only)", "Pr
    ig — IG declined the application on 2026-10-23; dropped (D-027). */
 export const RETIRED_SLUGS = ["ig"] as const;
 
+/* Vantage added 2026-10-25: the founder confirmed an agreement on 2026-10-24 (D-029); it was not yet tracked. */
+const VANTAGE_HELP = "https://global.vantagehelpcenter.com/hc/en-us/articles/14111897392655-How-to-become-CPA-Affiliate";
 export const SEED_FIRMS: SeedFirm[] = [
   {
     slug: "axi", name: "Axi", programmeUrl: "https://www.axi.com/uk/partnerships/affiliate-program", requirementsUrl: "https://www.axiaffiliates.com/frequently-asked-questions/", model: "cpa",
@@ -167,7 +170,35 @@ export const SEED_FIRMS: SeedFirm[] = [
       { key: "countries_accepted", value: "Excludes US, CA, JP, IL, NZ, RU (reported); UK not marketed; UK retail crypto-derivatives ban", sourceNote: NC },
     ],
   },
+  {
+    slug: "vantage", name: "Vantage", programmeUrl: "https://www.vantagemarkets.com/", requirementsUrl: VANTAGE_HELP, model: "cpa", seededOn: "2026-10-25",
+    notes: "Added 2026-10-25. The founder confirmed an affiliate agreement with Vantage on 2026-10-24. Vantage's help centre describes a CPA affiliate programme with an affiliate dashboard and no fee to join. Any figure below is an advertised ceiling, not Ten Talents' rate.",
+    countryNote: "Which countries' clients qualify, and which Vantage entity serves UK clients: " + NC + ".",
+    nextAction: "Record the partner-portal link, the agreement reference and the affiliate ID; enter the commercial terms from the agreement.", nextActionDueDays: 7,
+    research: [
+      { topic: "programme_model", claim: "Vantage's help centre describes a CPA affiliate programme: refer qualified clients, with an affiliate dashboard and marketing tools; no fee to join.", sourceUrl: VANTAGE_HELP },
+      { topic: "countries", claim: "Which countries' clients qualify, and under which Vantage entity UK clients are served, is not yet confirmed in writing.", sourceUrl: "https://www.vantagemarkets.com/", verification: "open_question" },
+      { topic: "traffic_sources", claim: "Which Ten Talents channels may be used, and whether accounts traded by an expert adviser (bot) count as qualified clients, is not yet confirmed in writing.", sourceUrl: "https://www.vantagemarkets.com/", verification: "open_question" },
+    ],
+    tasks: [
+      { title: "Confirm in writing which countries' clients qualify and which Vantage entity serves UK clients", priority: "high", dueDays: 7 },
+      { title: "Confirm whether accounts traded by an expert adviser (bot) count as qualified clients", priority: "normal", dueDays: 14 },
+      { title: "Obtain approved promotional materials and required risk-warning wording", priority: "normal", dueDays: 30 },
+      { title: "Test tracking links before any use", priority: "normal" },
+      { title: "Verify first commission payment against the statement", priority: "normal" },
+    ],
+    checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
+    terms: [{ key: "cpa_advertised_max", value: "Up to $1,200 per qualified client (help centre)", currency: "USD", sourceUrl: VANTAGE_HELP, sourceNote: NC + " — advertised ceiling; third-party reviews quote up to $800" }],
+  },
 ];
+
+/* Agreements the founder confirmed on 2026-10-24 (D-029). Applied once per firm at deploy by seedPartners(): the
+   application status becomes Approved while the firm is still pre-approval, with an audit row (actor "founder"), a
+   correspondence note and a filing task. Commercial terms and compliance are left as they are: an approval is not
+   confirmed terms, and not permission to promote. */
+export const CONFIRMED_AGREEMENTS = ["vantage", "axi", "xm", "pepperstone", "exness"].map((slug) => ({ slug, confirmedOn: "2026-10-24" }));
+export const AGREEMENT_NEXT_ACTION = "Agreement confirmed by the founder. File the signed agreement and approval email (references only), enter the affiliate ID and tracking link, and record the commercial terms from the agreement as Confirmed with their source.";
+export const AGREEMENT_TASK: SeedTask & { dueDays: number } = { title: "File the signed agreement (reference only), affiliate ID and tracking link; confirm the account and payouts are in TenTalents Ltd's name", priority: "high", dueDays: 7 };
 
 export const SEED_TERM_KEYS = TERM_KEYS;
 export const SEED_CHANNELS = CHANNELS;
