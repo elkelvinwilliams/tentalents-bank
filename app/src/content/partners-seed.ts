@@ -48,6 +48,8 @@ const STANDARD_DOCS = ["Proof of identity (reference to secure store only)", "Pr
 export const RETIRED_SLUGS = ["ig"] as const;
 
 /* Vantage added 2026-10-25: the founder confirmed an agreement on 2026-10-24 (D-029); it was not yet tracked. */
+/* AvaTrade added 2026-10-25 as a prospect at the founder's request. */
+const AVATRADE_PARTNERS = "https://avatrade.com.au/about-avatrade/partners";
 const VANTAGE_HELP = "https://global.vantagehelpcenter.com/hc/en-us/articles/14111897392655-How-to-become-CPA-Affiliate";
 export const SEED_FIRMS: SeedFirm[] = [
   {
@@ -189,6 +191,23 @@ export const SEED_FIRMS: SeedFirm[] = [
     ],
     checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
     terms: [{ key: "cpa_advertised_max", value: "Up to $1,200 per qualified client (help centre)", currency: "USD", sourceUrl: VANTAGE_HELP, sourceNote: NC + " — advertised ceiling; third-party reviews quote up to $800" }],
+  },
+  {
+    slug: "avatrade", name: "AvaTrade — AvaPartner", programmeUrl: "https://www.avatrade.com/", requirementsUrl: AVATRADE_PARTNERS, model: "enquiry_pending", seededOn: "2026-10-25",
+    notes: "Prospect added 2026-10-25 at the founder's request. AvaTrade's partners page describes tailored CPA, revenue-share (trade rebates) or hybrid deals for affiliates; it publishes no CPA figure. Whether AvaTrade accepts UK clients is contradicted across sources: check the FCA Register and AvaTrade's own terms before any contact.",
+    countryNote: "UK: conflicting. Comparison sites (2024–25) say AvaTrade no longer accepts UK clients; another source cites an FCA temporary permission for Ava Trade EU Ltd (Central Bank of Ireland). " + NC + " on the FCA Register.",
+    complianceRestrictions: "Sources mention an FCA warning about a clone firm using AvaTrade group details. Contact AvaTrade only through its official website, and check firm details on the FCA Register.",
+    nextAction: "Check the FCA Register and AvaTrade's own terms for UK client acceptance (beware the clone-firm warning). If UK clients are accepted, ask AvaPartner for the rate card, qualification rules and approved channels.", nextActionDueDays: 7,
+    research: [
+      { topic: "programme_model", claim: "AvaTrade's partners page describes an affiliate network of 70,000+ partners in 150+ countries, tailored CPA, revenue-share (trade rebates) or hybrid deals, and over $250m paid in commissions. No CPA figure is published there.", sourceUrl: AVATRADE_PARTNERS },
+      { topic: "countries", claim: "UK client acceptance is contradicted: comparison sites say AvaTrade no longer accepts UK clients; another source cites an FCA temporary permission for Ava Trade EU Ltd (regulated by the Central Bank of Ireland). " + NC + " on the FCA Register.", sourceUrl: "https://register.fca.org.uk/", verification: "open_question" },
+      { topic: "eligibility", claim: "Sources mention an FCA warning about a clone firm using AvaTrade group details; any contact must go through AvaTrade's official channels only.", sourceUrl: "https://register.fca.org.uk/", verification: "open_question" },
+    ],
+    tasks: STANDARD_TASKS, checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
+    terms: [
+      { key: "cpa_advertised_max", value: "Up to $800 per qualified client (third-party sites; not on the official page — Needs Confirmation)", currency: "USD", sourceUrl: AVATRADE_PARTNERS, sourceNote: NC + " — official page publishes no figure" },
+      { key: "countries_accepted", value: "UK: conflicting (reported closed to UK clients)", sourceNote: NC },
+    ],
   },
 ];
 
