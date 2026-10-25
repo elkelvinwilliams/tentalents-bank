@@ -109,11 +109,12 @@
       e.preventDefault();
       var btn = form.querySelector('[type="submit"]');
       var done = form.querySelector('.form-success');
+      var label = btn ? btn.innerHTML : '';
       if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
       setTimeout(function () {
         if (done) done.hidden = false;
         form.reset();
-        if (btn) { btn.disabled = false; btn.textContent = 'Submit enquiry'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = label; }
       }, 900);
     });
   });
