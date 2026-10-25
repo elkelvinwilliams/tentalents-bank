@@ -454,6 +454,7 @@ section:not(.bg-alt) .phone-stage::before { box-shadow: inset 0 0 0 6px var(--iv
   .svc-card .status { position: static; order: -1; margin-bottom: 1.2rem; }
   .values .track { gap: 0.5rem 1.6rem; }
   .values span:not(:last-child)::after { display: none; }
+  .hero .eyebrow::before { display: none; }
   .card .icon { margin-bottom: 1.2rem; }
   .brand-name { font-size: 1.3rem; }
 }

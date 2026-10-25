@@ -215,7 +215,6 @@ def portico(colour):
 
 if __name__ == "__main__":
     write("rosette.svg", rosette(GOLD_LIGHT))
-    write("rosette-ink.svg", rosette(GOLD_INK))
     write("band.svg", band(GOLD_LIGHT))
     write("band-ink.svg", band(GOLD_INK))
     write("medallion.svg", heavier(medallion(GOLD_LIGHT), 1.8))     # small ornament on navy
