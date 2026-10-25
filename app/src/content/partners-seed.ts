@@ -6,7 +6,7 @@
    Research claims are ASSUMPTIONS drawn from the programmes' public pages until a
    human verifies them against the source. Seed is insert-if-missing: re-running
    never overwrites edits made in the dashboard. Founder-confirmed agreements
-   (CONFIRMED_AGREEMENTS) are applied once at deploy.
+   (FOUNDER_UPDATES) are applied once at deploy.
    ============================================================ */
 import { TERM_KEYS, CHANNELS } from "../lib/partners";
 
@@ -193,7 +193,7 @@ export const SEED_FIRMS: SeedFirm[] = [
     terms: [{ key: "cpa_advertised_max", value: "Up to $1,200 per qualified client (help centre)", currency: "USD", sourceUrl: VANTAGE_HELP, sourceNote: NC + " — advertised ceiling; third-party reviews quote up to $800" }],
   },
   {
-    slug: "avatrade", name: "AvaTrade — AvaPartner", programmeUrl: "https://www.avatrade.com/", requirementsUrl: AVATRADE_PARTNERS, model: "enquiry_pending", seededOn: "2026-10-25",
+    slug: "avatrade", name: "AvaTrade — AvaPartner", programmeUrl: "https://www.avatrade.com/", applyUrl: "email support@avapartner.com", requirementsUrl: AVATRADE_PARTNERS, model: "enquiry_pending", seededOn: "2026-10-25",
     notes: "Prospect added 2026-10-25 at the founder's request. AvaTrade's partners page describes tailored CPA, revenue-share (trade rebates) or hybrid deals for affiliates; it publishes no CPA figure. Whether AvaTrade accepts UK clients is contradicted across sources: check the FCA Register and AvaTrade's own terms before any contact.",
     countryNote: "UK: conflicting. Comparison sites (2024–25) say AvaTrade no longer accepts UK clients; another source cites an FCA temporary permission for Ava Trade EU Ltd (Central Bank of Ireland). " + NC + " on the FCA Register.",
     complianceRestrictions: "Sources mention an FCA warning about a clone firm using AvaTrade group details. Contact AvaTrade only through its official website, and check firm details on the FCA Register.",
@@ -211,13 +211,30 @@ export const SEED_FIRMS: SeedFirm[] = [
   },
 ];
 
-/* Agreements the founder confirmed on 2026-10-24 (D-029). Applied once per firm at deploy by seedPartners(): the
-   application status becomes Approved while the firm is still pre-approval, with an audit row (actor "founder"), a
-   correspondence note and a filing task. Commercial terms and compliance are left as they are: an approval is not
-   confirmed terms, and not permission to promote. */
-export const CONFIRMED_AGREEMENTS = ["vantage", "axi", "xm", "pepperstone", "exness"].map((slug) => ({ slug, confirmedOn: "2026-10-24" }));
-export const AGREEMENT_NEXT_ACTION = "Agreement confirmed by the founder. File the signed agreement and approval email (references only), enter the affiliate ID and tracking link, and record the commercial terms from the agreement as Confirmed with their source.";
-export const AGREEMENT_TASK: SeedTask & { dueDays: number } = { title: "File the signed agreement (reference only), affiliate ID and tracking link; confirm the account and payouts are in TenTalents Ltd's name", priority: "high", dueDays: 7 };
+/* Status updates the founder confirmed, applied once per firm at deploy by seedPartners(): each moves the application
+   status forward (never back, never over Approved, Declined or On Hold) with an audit row (actor "founder"), a
+   correspondence note, the next action and a task. Commercial terms and compliance are left as they are: an approval
+   is not confirmed terms, and not permission to promote. Nothing private (references, IDs, contacts) goes here. */
+export type FounderUpdate = {
+  slug: string; status: "approved" | "application_submitted"; on: string;
+  comm: { kind: "email" | "other"; contactName: string; summary: string; questionsOpen: string };
+  nextAction: string; task: SeedTask & { dueDays: number };
+};
+const AGREEMENT = (slug: string): FounderUpdate => ({
+  slug, status: "approved", on: "2026-10-24", // D-029
+  comm: { kind: "other", contactName: "Kelvin Williams (founder)", summary: "Founder confirmed that Ten Talents has an affiliate agreement with this firm.", questionsOpen: "Signed agreement and approval email to file (references only); affiliate ID and tracking link; commercial terms in writing; which channels may be used." },
+  nextAction: "Agreement confirmed by the founder. File the signed agreement and approval email (references only), enter the affiliate ID and tracking link, and record the commercial terms from the agreement as Confirmed with their source.",
+  task: { title: "File the signed agreement (reference only), affiliate ID and tracking link; confirm the account and payouts are in TenTalents Ltd's name", priority: "high", dueDays: 7 },
+});
+export const FOUNDER_UPDATES: FounderUpdate[] = [
+  ...["vantage", "axi", "xm", "pepperstone", "exness"].map(AGREEMENT),
+  {
+    slug: "avatrade", status: "application_submitted", on: "2026-10-25",
+    comm: { kind: "email", contactName: "AvaPartner team", summary: "Sign-up confirmation: the application was received; a Partner Manager will be in touch to introduce AvaPartner, understand the business model and suggest suitable options. Affiliate-account access to tools and creatives in the meantime.", questionsOpen: "Does AvaTrade accept UK clients, and through which entity (check the FCA Register first)? Rate card and qualification rules; approved channels; contracting as TenTalents Ltd." },
+    nextAction: "Application received by AvaPartner (25 Oct). Before the Partner Manager call: check UK client acceptance on the FCA Register, then prepare questions on rates, qualification rules and approved channels. Use AvaTrade's official channels only.",
+    task: { title: "Prepare for the AvaPartner Partner Manager call: UK clients (FCA Register), rate card, qualification rules, approved channels, contracting entity", priority: "high", dueDays: 7 },
+  },
+];
 
 export const SEED_TERM_KEYS = TERM_KEYS;
 export const SEED_CHANNELS = CHANNELS;

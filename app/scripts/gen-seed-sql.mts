@@ -11,7 +11,7 @@ import { readdirSync } from "node:fs";
 const migrationFiles = readdirSync("drizzle").filter(f => f.endsWith(".sql")).sort();
 const readMigration = (f: string) => readFileSync("drizzle/" + f, "utf8")
   .split("--> statement-breakpoint").map(s => s.trim()).filter(Boolean).join("\n\n");
-let migration = migrationFiles.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n");
+const migration = migrationFiles.map(f => `-- migration ${f}\n${readMigration(f)}`).join("\n\n");
 
 
 
@@ -46,12 +46,12 @@ GLOSSARY.forEach(([term, def], gi) => {
 });
 
 /* Affiliate partnerships — tracked programmes, insert-if-missing so dashboard edits are never overwritten.
-   Founder-confirmed agreements (CONFIRMED_AGREEMENTS) are applied by the app's db:setup on deploy, not by this file. */
+   Founder-confirmed status updates (FOUNDER_UPDATES) are applied by the app's db:setup on deploy, not by this file. */
 const R = seedRows();
 const v = (x: unknown) => (x === null || x === undefined ? "NULL" : typeof x === "boolean" ? String(x) : typeof x === "number" ? String(x) : typeof x === "object" ? q(JSON.stringify(x)) + "::jsonb" : q(String(x)));
 let pt = "";
 const ins = (table: string, rows: Record<string, unknown>[], cols: Record<string, string>) => rows.forEach((r) => { const ks = Object.keys(cols).filter((k) => r[k] !== undefined); pt += `INSERT INTO ${table} (${ks.map((k) => cols[k]).join(",")}) VALUES (${ks.map((k) => v(r[k])).join(",")}) ON CONFLICT DO NOTHING;\n`; });
-pt += `\n-- Affiliate partnerships: tracked programmes (insert-if-missing). Founder-confirmed agreements are applied by the app on deploy (npm run db:setup).\n`;
+pt += `\n-- Affiliate partnerships: tracked programmes (insert-if-missing). Founder-confirmed status updates are applied by the app on deploy (npm run db:setup).\n`;
 for (const slug of RETIRED_SLUGS) pt += `DELETE FROM partner_firms WHERE slug=${q(slug)}; -- retired by founder decision; cascades\n`;
 ins("partner_firms", R.firms as Record<string, unknown>[], { id: "id", slug: "slug", name: "name", programmeUrl: "programme_url", applyUrl: "apply_url", requirementsUrl: "requirements_url", model: "model", applicationStatus: "application_status", termsStatus: "terms_status", complianceStatus: "compliance_status", countryEligibility: "country_eligibility", countryNote: "country_note", targetCountries: "target_countries", owner: "owner", nextAction: "next_action", nextActionDue: "next_action_due", lastResearchAt: "last_research_at", notes: "notes" });
 ins("partner_research", R.research as Record<string, unknown>[], { id: "id", firmId: "firm_id", topic: "topic", claim: "claim", sourceUrl: "source_url", verification: "verification", verifiedAt: "verified_at", notes: "notes" });

@@ -1,7 +1,7 @@
 import { db, tables } from "@/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { nid } from "./auth";
-import { SEED_FIRMS, seedNote, SEED_RESEARCH_DATE as SEED_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays, RETIRED_SLUGS, CONFIRMED_AGREEMENTS, AGREEMENT_NEXT_ACTION, AGREEMENT_TASK } from "@/content/partners-seed";
+import { SEED_FIRMS, seedNote, SEED_RESEARCH_DATE as SEED_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays, RETIRED_SLUGS, FOUNDER_UPDATES } from "@/content/partners-seed";
 import { overdue, dueSoon, today } from "./partners";
 
 /* ============================================================
@@ -32,7 +32,7 @@ export function seedRows(): Rows {
 }
 
 /** Remove retired firms, insert tracked programmes if (and only if) they are missing, then apply founder-confirmed
- *  agreements once. Never overwrites edits. */
+ *  status updates once. Never overwrites edits. */
 export async function seedPartners() {
   for (const slug of RETIRED_SLUGS) await db.delete(tables.partnerFirms).where(eq(tables.partnerFirms.slug, slug)); // cascades to every child table
   const R = seedRows(); let created = 0;
@@ -51,7 +51,7 @@ export async function seedPartners() {
     created++;
   }
   await seedPatches(R);
-  await applyConfirmedAgreements();
+  await applyFounderUpdates();
   return created;
 }
 
@@ -76,26 +76,35 @@ async function seedPatches(R: Rows) {
   }
 }
 
-const PRE_APPROVAL = ["not_started", "researching", "ready_to_apply", "application_submitted", "awaiting_response", "more_info_required"];
+/* Statuses a founder update may move a firm from: forward only, never over Approved, Declined or On Hold. */
+const MOVABLE_FROM: Record<string, string[]> = {
+  application_submitted: ["not_started", "researching", "ready_to_apply"],
+  approved: ["not_started", "researching", "ready_to_apply", "application_submitted", "awaiting_response", "more_info_required"],
+};
 
-/** Founder-confirmed agreements: applied once per firm (the audit row's fixed id is the marker) and never over a
- *  decision already made in the dashboard (Approved, Declined, On Hold). Terms and compliance are not touched. */
-async function applyConfirmedAgreements() {
-  for (const c of CONFIRMED_AGREEMENTS) {
-    const f = (await db.select().from(tables.partnerFirms).where(eq(tables.partnerFirms.slug, c.slug)))[0];
-    if (!f || !PRE_APPROVAL.includes(f.applicationStatus)) continue;
-    const marker = `pau_${c.slug}_agreement`;
+/** Founder-confirmed status updates: applied once per firm and status (the audit row's fixed id is the marker).
+ *  Terms and compliance are not touched; a next action the founder wrote is kept. */
+async function applyFounderUpdates() {
+  for (const u of FOUNDER_UPDATES) {
+    const f = (await db.select().from(tables.partnerFirms).where(eq(tables.partnerFirms.slug, u.slug)))[0];
+    if (!f || !MOVABLE_FROM[u.status].includes(f.applicationStatus)) continue;
+    const marker = `pau_${u.slug}_${u.status}`;
     if ((await db.select({ id: tables.partnerAudit.id }).from(tables.partnerAudit).where(eq(tables.partnerAudit.id, marker)))[0]) continue;
-    const seededAction = SEED_FIRMS.find((s) => s.slug === c.slug)?.nextAction;
-    const nextAction = !f.nextAction || f.nextAction === seededAction ? AGREEMENT_NEXT_ACTION : null; // keep an action the founder wrote
-    await db.update(tables.partnerFirms).set({ applicationStatus: "approved", ...(nextAction ? { nextAction, nextActionDue: addDays(c.confirmedOn, 14) } : {}), updatedAt: new Date() }).where(eq(tables.partnerFirms.id, f.id));
-    await db.insert(tables.partnerAudit).values({ id: marker, firmId: f.id, entity: "firm", entityId: f.id, field: "applicationStatus", oldValue: f.applicationStatus, newValue: "approved", actor: "founder" });
+    const seededAction = SEED_FIRMS.find((s) => s.slug === u.slug)?.nextAction;
+    const nextAction = !f.nextAction || f.nextAction === seededAction ? u.nextAction : null; // keep an action the founder wrote
+    const contacted = u.comm.kind !== "other" && (!f.lastContactAt || f.lastContactAt < u.on); // a message from the firm counts as contact, as in the dashboard
+    await db.update(tables.partnerFirms).set({ applicationStatus: u.status, ...(nextAction ? { nextAction, nextActionDue: addDays(u.on, 14) } : {}), ...(contacted ? { lastContactAt: u.on } : {}), updatedAt: new Date() }).where(eq(tables.partnerFirms.id, f.id));
+    await db.insert(tables.partnerAudit).values({ id: marker, firmId: f.id, entity: "firm", entityId: f.id, field: "applicationStatus", oldValue: f.applicationStatus, newValue: u.status, actor: "founder" });
     if (nextAction) await audit(f.id, "firm", f.id, "nextAction", f.nextAction, nextAction, "founder");
-    await db.insert(tables.partnerComms).values({ id: `pcm_${c.slug}_agreement`, firmId: f.id, at: c.confirmedOn, kind: "other", contactName: "Kelvin Williams (founder)", summary: `Founder confirmed that Ten Talents has an affiliate agreement with ${f.name}.`, questionsOpen: "Signed agreement and approval email to file (references only); affiliate ID and tracking link; commercial terms in writing; which channels may be used.", nextFollowUp: addDays(c.confirmedOn, 14) }).onConflictDoNothing();
-    await db.insert(tables.partnerTasks).values({ id: `pk_${c.slug}_agreement`, firmId: f.id, title: AGREEMENT_TASK.title, owner: SEED_OWNER, priority: AGREEMENT_TASK.priority ?? "high", dueAt: addDays(c.confirmedOn, AGREEMENT_TASK.dueDays) }).onConflictDoNothing();
-    const applyTasks = await db.select().from(tables.partnerTasks).where(and(eq(tables.partnerTasks.firmId, f.id), eq(tables.partnerTasks.status, "open")));
-    for (const k of applyTasks.filter((k) => k.title.startsWith("Apply to programme"))) {
-      await db.update(tables.partnerTasks).set({ status: "cancelled", notes: "Not needed: agreement confirmed by the founder on " + c.confirmedOn + ".", completedAt: new Date() }).where(eq(tables.partnerTasks.id, k.id));
+    if (u.status === "application_submitted") {
+      const app = (await db.select().from(tables.partnerApplications).where(eq(tables.partnerApplications.firmId, f.id)))[0];
+      if (app && !app.submittedAt) { await db.update(tables.partnerApplications).set({ submittedAt: u.on, updatedAt: new Date() }).where(eq(tables.partnerApplications.id, app.id)); await audit(f.id, "application", app.id, "submittedAt", null, u.on, "founder"); }
+    }
+    await db.insert(tables.partnerComms).values({ id: `pcm_${u.slug}_${u.status}`, firmId: f.id, at: u.on, kind: u.comm.kind, contactName: u.comm.contactName, summary: u.comm.summary, questionsOpen: u.comm.questionsOpen, nextFollowUp: addDays(u.on, 14) }).onConflictDoNothing();
+    await db.insert(tables.partnerTasks).values({ id: `pk_${u.slug}_${u.status}`, firmId: f.id, title: u.task.title, owner: SEED_OWNER, priority: u.task.priority ?? "high", dueAt: addDays(u.on, u.task.dueDays) }).onConflictDoNothing();
+    const open = await db.select().from(tables.partnerTasks).where(and(eq(tables.partnerTasks.firmId, f.id), eq(tables.partnerTasks.status, "open")));
+    for (const k of open.filter((k) => k.title.startsWith("Apply to programme"))) {
+      await db.update(tables.partnerTasks).set({ status: "cancelled", notes: (u.status === "approved" ? "Not needed: agreement confirmed by the founder on " : "Done: applied on ") + u.on + ".", completedAt: new Date() }).where(eq(tables.partnerTasks.id, k.id));
       await audit(f.id, "task", k.id, "status", "open", "cancelled", "founder");
     }
   }
