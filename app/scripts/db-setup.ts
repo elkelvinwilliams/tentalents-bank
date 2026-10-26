@@ -56,7 +56,7 @@ async function seed() {
   }
   console.log("seeded: tracks", TRACKS.length, "· glossary", GLOSSARY.length);
   const firms = await seedPartners();
-  console.log("partners: seeded", firms, "new prospect(s); existing records untouched");
+  console.log("partners: added", firms, "new programme(s); founder-confirmed updates applied once; dashboard edits untouched");
 }
 
 migrate().then(seed).then(() => { console.log("db ready"); process.exit(0); })

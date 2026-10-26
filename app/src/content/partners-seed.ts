@@ -1,16 +1,17 @@
 /* ============================================================
-   Affiliate Partnerships — seed for the four PROSPECTS.
-   Everything here is PROVISIONAL and truthful: no application has been
-   submitted, nothing is approved, no terms are confirmed, no commission exists.
-   Research claims are recorded as ASSUMPTIONS drawn from the brief and the
-   programmes' public pages; they must be re-verified against the official
-   source and marked "verified" with a date by a human. Seed is insert-if-missing:
-   re-running never overwrites edits made in the dashboard.
+   Affiliate Partnerships — seed for the programmes Ten Talents tracks.
+   Public code: programme URLs, provisional facts and founder-confirmed statuses
+   only. Agreement references, affiliate IDs, contacts and figures are entered in
+   the dashboard (private database), never here.
+   Research claims are ASSUMPTIONS drawn from the programmes' public pages until a
+   human verifies them against the source. Seed is insert-if-missing: re-running
+   never overwrites edits made in the dashboard. Founder-confirmed agreements
+   (FOUNDER_UPDATES) are applied once at deploy.
    ============================================================ */
 import { TERM_KEYS, CHANNELS } from "../lib/partners";
 
 export const SEED_RESEARCH_DATE = "2026-10-21";
-export const SEED_NOTE = "Seeded from the partnerships brief on " + SEED_RESEARCH_DATE + ". Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.";
+export const seedNote = (date: string) => "Seeded on " + date + " from the partnerships brief and the programmes' public pages. Official pages were NOT re-checked from the build environment (outbound access blocked); every claim below is an assumption until a human verifies it against the linked source.";
 
 export type SeedClaim = { topic: string; claim: string; sourceUrl: string; verification?: "assumption" | "verified" | "open_question" };
 export type SeedTask = { title: string; priority?: "low" | "normal" | "high" | "urgent"; dueDays?: number };
@@ -46,6 +47,10 @@ const STANDARD_DOCS = ["Proof of identity (reference to secure store only)", "Pr
    ig — IG declined the application on 2026-10-23; dropped (D-027). */
 export const RETIRED_SLUGS = ["ig"] as const;
 
+/* Vantage added 2026-10-25: the founder confirmed an agreement on 2026-10-24 (D-029); it was not yet tracked. */
+/* AvaTrade added 2026-10-25 as a prospect at the founder's request. */
+const AVATRADE_PARTNERS = "https://avatrade.com.au/about-avatrade/partners";
+const VANTAGE_HELP = "https://global.vantagehelpcenter.com/hc/en-us/articles/14111897392655-How-to-become-CPA-Affiliate";
 export const SEED_FIRMS: SeedFirm[] = [
   {
     slug: "axi", name: "Axi", programmeUrl: "https://www.axi.com/uk/partnerships/affiliate-program", requirementsUrl: "https://www.axiaffiliates.com/frequently-asked-questions/", model: "cpa",
@@ -166,6 +171,74 @@ export const SEED_FIRMS: SeedFirm[] = [
       { key: "min_payout", value: "Conflicting: none / $100", currency: "USD", sourceNote: NC },
       { key: "countries_accepted", value: "Excludes US, CA, JP, IL, NZ, RU (reported); UK not marketed; UK retail crypto-derivatives ban", sourceNote: NC },
     ],
+  },
+  {
+    slug: "vantage", name: "Vantage", programmeUrl: "https://www.vantagemarkets.com/", requirementsUrl: VANTAGE_HELP, model: "cpa", seededOn: "2026-10-25",
+    notes: "Added 2026-10-25. The founder confirmed an affiliate agreement with Vantage on 2026-10-24. Vantage's help centre describes a CPA affiliate programme with an affiliate dashboard and no fee to join. Any figure below is an advertised ceiling, not Ten Talents' rate.",
+    countryNote: "Which countries' clients qualify, and which Vantage entity serves UK clients: " + NC + ".",
+    nextAction: "Record the partner-portal link, the agreement reference and the affiliate ID; enter the commercial terms from the agreement.", nextActionDueDays: 7,
+    research: [
+      { topic: "programme_model", claim: "Vantage's help centre describes a CPA affiliate programme: refer qualified clients, with an affiliate dashboard and marketing tools; no fee to join.", sourceUrl: VANTAGE_HELP },
+      { topic: "countries", claim: "Which countries' clients qualify, and under which Vantage entity UK clients are served, is not yet confirmed in writing.", sourceUrl: "https://www.vantagemarkets.com/", verification: "open_question" },
+      { topic: "traffic_sources", claim: "Which Ten Talents channels may be used, and whether accounts traded by an expert adviser (bot) count as qualified clients, is not yet confirmed in writing.", sourceUrl: "https://www.vantagemarkets.com/", verification: "open_question" },
+    ],
+    tasks: [
+      { title: "Confirm in writing which countries' clients qualify and which Vantage entity serves UK clients", priority: "high", dueDays: 7 },
+      { title: "Confirm whether accounts traded by an expert adviser (bot) count as qualified clients", priority: "normal", dueDays: 14 },
+      { title: "Obtain approved promotional materials and required risk-warning wording", priority: "normal", dueDays: 30 },
+      { title: "Test tracking links before any use", priority: "normal" },
+      { title: "Verify first commission payment against the statement", priority: "normal" },
+    ],
+    checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
+    terms: [{ key: "cpa_advertised_max", value: "Up to $1,200 per qualified client (help centre)", currency: "USD", sourceUrl: VANTAGE_HELP, sourceNote: NC + " — advertised ceiling; third-party reviews quote up to $800" }],
+  },
+  {
+    slug: "avatrade", name: "AvaTrade — AvaPartner", programmeUrl: "https://www.avatrade.com/", applyUrl: "email support@avapartner.com", requirementsUrl: AVATRADE_PARTNERS, model: "enquiry_pending", seededOn: "2026-10-25",
+    notes: "Prospect added 2026-10-25 at the founder's request. AvaTrade's partners page describes tailored CPA, revenue-share (trade rebates) or hybrid deals for affiliates; it publishes no CPA figure. Whether AvaTrade accepts UK clients is contradicted across sources: check the FCA Register and AvaTrade's own terms before any contact.",
+    countryNote: "UK: conflicting. Comparison sites (2024–25) say AvaTrade no longer accepts UK clients; another source cites an FCA temporary permission for Ava Trade EU Ltd (Central Bank of Ireland). " + NC + " on the FCA Register.",
+    complianceRestrictions: "Sources mention an FCA warning about a clone firm using AvaTrade group details. Contact AvaTrade only through its official website, and check firm details on the FCA Register.",
+    nextAction: "Check the FCA Register and AvaTrade's own terms for UK client acceptance (beware the clone-firm warning). If UK clients are accepted, ask AvaPartner for the rate card, qualification rules and approved channels.", nextActionDueDays: 7,
+    research: [
+      { topic: "programme_model", claim: "AvaTrade's partners page describes an affiliate network of 70,000+ partners in 150+ countries, tailored CPA, revenue-share (trade rebates) or hybrid deals, and over $250m paid in commissions. No CPA figure is published there.", sourceUrl: AVATRADE_PARTNERS },
+      { topic: "countries", claim: "UK client acceptance is contradicted: comparison sites say AvaTrade no longer accepts UK clients; another source cites an FCA temporary permission for Ava Trade EU Ltd (regulated by the Central Bank of Ireland). " + NC + " on the FCA Register.", sourceUrl: "https://register.fca.org.uk/", verification: "open_question" },
+      { topic: "eligibility", claim: "Sources mention an FCA warning about a clone firm using AvaTrade group details; any contact must go through AvaTrade's official channels only.", sourceUrl: "https://register.fca.org.uk/", verification: "open_question" },
+    ],
+    tasks: STANDARD_TASKS, checklist: STANDARD_CHECKLIST, documents: STANDARD_DOCS,
+    terms: [
+      { key: "cpa_advertised_max", value: "Up to $800 per qualified client (third-party sites; not on the official page — Needs Confirmation)", currency: "USD", sourceUrl: AVATRADE_PARTNERS, sourceNote: NC + " — official page publishes no figure" },
+      { key: "countries_accepted", value: "UK: conflicting (reported closed to UK clients)", sourceNote: NC },
+    ],
+  },
+];
+
+/* Status updates the founder confirmed (agreements 24 Oct, D-029; Axi corrected to an application on 25 Oct), applied once per firm at deploy by seedPartners(): each moves the application
+   status forward (never back, never over Approved, Declined or On Hold) with an audit row (actor "founder"), a
+   correspondence note, the next action and a task. Commercial terms and compliance are left as they are: an approval
+   is not confirmed terms, and not permission to promote. Nothing private (references, IDs, contacts) goes here. */
+export type FounderUpdate = {
+  slug: string; status: "approved" | "application_submitted"; on: string;
+  comm: { kind: "email" | "other"; contactName: string; summary: string; questionsOpen: string };
+  nextAction: string; task: SeedTask & { dueDays: number };
+};
+const AGREEMENT = (slug: string): FounderUpdate => ({
+  slug, status: "approved", on: "2026-10-24", // D-029
+  comm: { kind: "other", contactName: "Kelvin Williams (founder)", summary: "Founder confirmed that Ten Talents has an affiliate agreement with this firm.", questionsOpen: "Signed agreement and approval email to file (references only); affiliate ID and tracking link; commercial terms in writing; which channels may be used." },
+  nextAction: "Agreement confirmed by the founder. File the signed agreement and approval email (references only), enter the affiliate ID and tracking link, and record the commercial terms from the agreement as Confirmed with their source.",
+  task: { title: "File the signed agreement (reference only), affiliate ID and tracking link; confirm the account and payouts are in TenTalents Ltd's name", priority: "high", dueDays: 7 },
+});
+export const FOUNDER_UPDATES: FounderUpdate[] = [
+  ...["vantage", "xm", "pepperstone", "exness"].map(AGREEMENT),
+  { // Founder, 25 Oct: Axi has not approved yet; the application was sent by email on 22 Oct after the online form failed.
+    slug: "axi", status: "application_submitted", on: "2026-10-22",
+    comm: { kind: "other", contactName: "Kelvin Williams (founder)", summary: "Founder confirmed the Axi Affiliates application was submitted on 22 Oct; Axi has not yet approved it.", questionsOpen: "Approval decision; Affiliate Agreement and marketing guidelines; UK CPA tier; payout threshold and frequency." },
+    nextAction: "Application submitted (22 Oct). Chase Axi for the approval decision and the Affiliate Agreement; when it arrives, record the terms as Confirmed with their source.",
+    task: { title: "Chase Axi for the approval decision and the Affiliate Agreement", priority: "high", dueDays: 5 },
+  },
+  {
+    slug: "avatrade", status: "application_submitted", on: "2026-10-25",
+    comm: { kind: "email", contactName: "AvaPartner team", summary: "Sign-up confirmation: the application was received; a Partner Manager will be in touch to introduce AvaPartner, understand the business model and suggest suitable options. Affiliate-account access to tools and creatives in the meantime.", questionsOpen: "Does AvaTrade accept UK clients, and through which entity (check the FCA Register first)? Rate card and qualification rules; approved channels; contracting as TenTalents Ltd." },
+    nextAction: "Application received by AvaPartner (25 Oct). Before the Partner Manager call: check UK client acceptance on the FCA Register, then prepare questions on rates, qualification rules and approved channels. Use AvaTrade's official channels only.",
+    task: { title: "Prepare for the AvaPartner Partner Manager call: UK clients (FCA Register), rate card, qualification rules, approved channels, contracting entity", priority: "high", dueDays: 7 },
   },
 ];
 

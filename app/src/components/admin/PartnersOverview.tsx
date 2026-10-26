@@ -35,12 +35,12 @@ export default function PartnersOverview({ firms, actions, ranking }: { firms: F
   const overdueCount = actions.filter((a) => a.overdue).length;
 
   return (<>
-    <div className="ptnote"><b>Provisional throughout.</b> All firms shown are prospects. Application, commercial-terms and compliance statuses are independent and change only when the matching evidence is recorded. An affiliate agreement is not permission to communicate financial promotions; every channel needs its own approval record.</div>
+    <div className="ptnote"><b>Three separate checks.</b> Application, commercial-terms and compliance statuses are independent and change only when the matching evidence is recorded. An approved programme does not mean its terms are confirmed, and an affiliate agreement is not permission to communicate financial promotions; every channel needs its own approval record.</div>
     <div className="ptstats">
-      <div className="ptstat"><div className="k">Prospects</div><div className="v">{firms.length}</div><div className="d">firms tracked</div></div>
+      <div className="ptstat"><div className="k">Programmes</div><div className="v">{firms.length}</div><div className="d">firms tracked</div></div>
       <div className="ptstat"><div className="k">Applications submitted</div><div className="v">{n((f) => ["application_submitted", "awaiting_response", "more_info_required"].includes(f.applicationStatus))}</div><div className="d">{n((f) => f.applicationStatus === "ready_to_apply")} ready to apply</div></div>
       <div className="ptstat"><div className="k">Approved programmes</div><div className="v">{n((f) => f.applicationStatus === "approved")}</div><div className="d">{n((f) => f.applicationStatus === "declined")} declined</div></div>
-      <div className="ptstat"><div className="k">Confirmed agreements</div><div className="v">{n((f) => f.termsStatus === "confirmed")}</div><div className="d">terms confirmed in writing</div></div>
+      <div className="ptstat"><div className="k">Terms confirmed</div><div className="v">{n((f) => f.termsStatus === "confirmed")}</div><div className="d">in writing, with a source</div></div>
       <div className="ptstat"><div className="k">Compliance approved</div><div className="v">{n((f) => f.complianceStatus === "approved_for_specified_use")}</div><div className="d">for specified use</div></div>
       <div className="ptstat"><div className="k">Overdue actions</div><div className="v" style={overdueCount ? { color: "var(--red)" } : undefined}>{overdueCount}</div><div className="d">{actions.length} open in total</div></div>
     </div>

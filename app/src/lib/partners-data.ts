@@ -1,7 +1,7 @@
 import { db, tables } from "@/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { nid } from "./auth";
-import { SEED_FIRMS, SEED_NOTE, SEED_RESEARCH_DATE as SEED_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays, RETIRED_SLUGS } from "@/content/partners-seed";
+import { SEED_FIRMS, seedNote, SEED_RESEARCH_DATE as SEED_DATE, SEED_OWNER, SEED_TERM_KEYS, SEED_CHANNELS, addDays, RETIRED_SLUGS, FOUNDER_UPDATES } from "@/content/partners-seed";
 import { overdue, dueSoon, today } from "./partners";
 
 /* ============================================================
@@ -14,24 +14,25 @@ type Rows = {
   tasks: (typeof tables.partnerTasks.$inferInsert)[]; audit: (typeof tables.partnerAudit.$inferInsert)[];
 };
 
-/** Deterministic seed rows for the prospects (same ids in db-setup and the Neon SQL file). */
+/** Deterministic seed rows for the tracked programmes (same ids in db-setup and the Neon SQL file). */
 export function seedRows(): Rows {
   const R: Rows = { firms: [], research: [], applications: [], terms: [], compliance: [], channels: [], tasks: [], audit: [] };
   for (const f of SEED_FIRMS) {
     const id = "pf_" + f.slug; const SEED_RESEARCH_DATE = f.seededOn ?? SEED_DATE;
-    R.firms.push({ id, slug: f.slug, name: f.name, programmeUrl: f.programmeUrl, applyUrl: f.applyUrl ?? "", requirementsUrl: f.requirementsUrl ?? "", model: f.model, applicationStatus: "researching", termsStatus: "unverified", complianceStatus: f.complianceStatus ?? "not_reviewed", countryNote: f.countryNote ?? "", countryEligibility: "unknown", targetCountries: ["GB"], owner: SEED_OWNER, nextAction: f.nextAction, nextActionDue: addDays(SEED_RESEARCH_DATE, f.nextActionDueDays), lastResearchAt: SEED_RESEARCH_DATE, notes: f.notes + "\n\n" + SEED_NOTE });
+    R.firms.push({ id, slug: f.slug, name: f.name, programmeUrl: f.programmeUrl, applyUrl: f.applyUrl ?? "", requirementsUrl: f.requirementsUrl ?? "", model: f.model, applicationStatus: "researching", termsStatus: "unverified", complianceStatus: f.complianceStatus ?? "not_reviewed", countryNote: f.countryNote ?? "", countryEligibility: "unknown", targetCountries: ["GB"], owner: SEED_OWNER, nextAction: f.nextAction, nextActionDue: addDays(SEED_RESEARCH_DATE, f.nextActionDueDays), lastResearchAt: SEED_RESEARCH_DATE, notes: f.notes + "\n\n" + seedNote(SEED_RESEARCH_DATE) });
     f.research.forEach((r, i) => R.research.push({ id: `pr_${f.slug}_${i + 1}`, firmId: id, topic: r.topic, claim: r.claim, sourceUrl: r.sourceUrl, verification: r.verification ?? "assumption", verifiedAt: null, notes: "Seeded " + SEED_RESEARCH_DATE + "; not yet verified against the source." }));
     R.applications.push({ id: "pa_" + f.slug, firmId: id, checklist: f.checklist.map((label) => ({ label, done: false })), documents: f.documents.map((label) => ({ label, locationRef: "", done: false })) });
     SEED_TERM_KEYS.forEach((key) => { const t = f.terms?.find((x) => x.key === key); R.terms.push({ id: `pt_${f.slug}_${key}`, firmId: id, key, status: "unverified", ...(t ? { value: t.value, currency: t.currency, sourceUrl: t.sourceUrl ?? "", sourceNote: t.sourceNote ?? "" } : {}) }); });
     R.compliance.push({ id: "pc_" + f.slug, firmId: id, permittedToPromote: "unknown", legalAdviceRequired: true, restrictions: f.complianceRestrictions ?? "", openQuestions: "Is Ten Talents (not FCA-authorised) permitted to communicate this firm's financial promotions to a UK audience, and under whose approval? Which risk warnings and disclosure wording are required per channel?" });
     SEED_CHANNELS.forEach((channel) => R.channels.push({ id: `pch_${f.slug}_${channel}`, firmId: id, channel, status: "not_reviewed" }));
     f.tasks.forEach((t, i) => R.tasks.push({ id: `pk_${f.slug}_${i + 1}`, firmId: id, title: t.title, owner: SEED_OWNER, priority: t.priority ?? "normal", dueAt: t.dueDays ? addDays(SEED_RESEARCH_DATE, t.dueDays) : null }));
-    R.audit.push({ id: "pau_" + f.slug, firmId: id, entity: "firm", entityId: id, field: "created", oldValue: "", newValue: "seeded as prospect (" + SEED_RESEARCH_DATE + ")", actor: "seed" });
+    R.audit.push({ id: "pau_" + f.slug, firmId: id, entity: "firm", entityId: id, field: "created", oldValue: "", newValue: "added to the tracker (" + SEED_RESEARCH_DATE + ")", actor: "seed" });
   }
   return R;
 }
 
-/** Remove retired firms, then insert the prospects if (and only if) they are missing. Never overwrites edits. */
+/** Remove retired firms, insert tracked programmes if (and only if) they are missing, then apply founder-confirmed
+ *  status updates once. Never overwrites edits. */
 export async function seedPartners() {
   for (const slug of RETIRED_SLUGS) await db.delete(tables.partnerFirms).where(eq(tables.partnerFirms.slug, slug)); // cascades to every child table
   const R = seedRows(); let created = 0;
@@ -50,6 +51,7 @@ export async function seedPartners() {
     created++;
   }
   await seedPatches(R);
+  await applyFounderUpdates();
   return created;
 }
 
@@ -70,6 +72,40 @@ async function seedPatches(R: Rows) {
       const cur = existingT.find((x) => x.key === t.key);
       if (!cur) { await db.insert(tables.partnerTermItems).values(t); continue; }
       if (!cur.value?.trim() && t.value) await db.update(tables.partnerTermItems).set({ value: t.value, currency: cur.currency ?? t.currency ?? null, sourceUrl: cur.sourceUrl || t.sourceUrl || "", sourceNote: cur.sourceNote || t.sourceNote || "" }).where(eq(tables.partnerTermItems.id, cur.id));
+    }
+  }
+}
+
+/* Statuses a founder update may move a firm from: forward only, never over Approved, Declined or On Hold. */
+const MOVABLE_FROM: Record<string, string[]> = {
+  application_submitted: ["not_started", "researching", "ready_to_apply"],
+  approved: ["not_started", "researching", "ready_to_apply", "application_submitted", "awaiting_response", "more_info_required"],
+};
+
+/** Founder-confirmed status updates: applied once per firm and status (the audit row's fixed id is the marker).
+ *  Terms and compliance are not touched; a next action the founder wrote is kept. */
+async function applyFounderUpdates() {
+  for (const u of FOUNDER_UPDATES) {
+    const f = (await db.select().from(tables.partnerFirms).where(eq(tables.partnerFirms.slug, u.slug)))[0];
+    if (!f || !MOVABLE_FROM[u.status].includes(f.applicationStatus)) continue;
+    const marker = `pau_${u.slug}_${u.status}`;
+    if ((await db.select({ id: tables.partnerAudit.id }).from(tables.partnerAudit).where(eq(tables.partnerAudit.id, marker)))[0]) continue;
+    const seededAction = SEED_FIRMS.find((s) => s.slug === u.slug)?.nextAction;
+    const nextAction = !f.nextAction || f.nextAction === seededAction ? u.nextAction : null; // keep an action the founder wrote
+    const contacted = u.comm.kind !== "other" && (!f.lastContactAt || f.lastContactAt < u.on); // a message from the firm counts as contact, as in the dashboard
+    await db.update(tables.partnerFirms).set({ applicationStatus: u.status, ...(nextAction ? { nextAction, nextActionDue: addDays(u.on, 14) } : {}), ...(contacted ? { lastContactAt: u.on } : {}), updatedAt: new Date() }).where(eq(tables.partnerFirms.id, f.id));
+    await db.insert(tables.partnerAudit).values({ id: marker, firmId: f.id, entity: "firm", entityId: f.id, field: "applicationStatus", oldValue: f.applicationStatus, newValue: u.status, actor: "founder" });
+    if (nextAction) await audit(f.id, "firm", f.id, "nextAction", f.nextAction, nextAction, "founder");
+    if (u.status === "application_submitted") {
+      const app = (await db.select().from(tables.partnerApplications).where(eq(tables.partnerApplications.firmId, f.id)))[0];
+      if (app && !app.submittedAt) { await db.update(tables.partnerApplications).set({ submittedAt: u.on, updatedAt: new Date() }).where(eq(tables.partnerApplications.id, app.id)); await audit(f.id, "application", app.id, "submittedAt", null, u.on, "founder"); }
+    }
+    await db.insert(tables.partnerComms).values({ id: `pcm_${u.slug}_${u.status}`, firmId: f.id, at: u.on, kind: u.comm.kind, contactName: u.comm.contactName, summary: u.comm.summary, questionsOpen: u.comm.questionsOpen, nextFollowUp: addDays(u.on, 14) }).onConflictDoNothing();
+    await db.insert(tables.partnerTasks).values({ id: `pk_${u.slug}_${u.status}`, firmId: f.id, title: u.task.title, owner: SEED_OWNER, priority: u.task.priority ?? "high", dueAt: addDays(u.on, u.task.dueDays) }).onConflictDoNothing();
+    const open = await db.select().from(tables.partnerTasks).where(and(eq(tables.partnerTasks.firmId, f.id), eq(tables.partnerTasks.status, "open")));
+    for (const k of open.filter((k) => k.title.startsWith("Apply to programme"))) {
+      await db.update(tables.partnerTasks).set({ status: "cancelled", notes: (u.status === "approved" ? "Not needed: agreement confirmed by the founder on " : "Done: applied on ") + u.on + ".", completedAt: new Date() }).where(eq(tables.partnerTasks.id, k.id));
+      await audit(f.id, "task", k.id, "status", "open", "cancelled", "founder");
     }
   }
 }
